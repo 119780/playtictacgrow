@@ -156,16 +156,13 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 
     <!-- Choose mode -->
     <div class="lscreen active" id="ls-choose">
-      <button class="lbig local" onclick="startLocal()">
-        <div class="lbig-icon"></div>
+      <button class="lbig local" onclick="startLocal()"> 
         <div><div class="lbig-title">Play Locally</div><div class="lbig-desc">Two players, one screen</div></div>
       </button>
       <button class="lbig host" onclick="showHostScreen()">
-        <div class="lbig-icon"></div>
         <div><div class="lbig-title">Host a Game</div><div class="lbig-desc">Get a code, share with your friend</div></div>
       </button>
       <button class="lbig join" onclick="showJoinScreen()">
-        <div class="lbig-icon"></div>
         <div><div class="lbig-title">Join a Game</div><div class="lbig-desc">Enter a friend's room code</div></div>
       </button>
     </div>
@@ -197,13 +194,13 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         <button class="lbtn-pri" id="join-btn" onclick="doJoin()">Connect</button>
         <button class="lbtn-sec" onclick="showChooseScreen()">Back</button>
       </div>
-      <div class="l-note">Enter the code exactly as shown to your friend.</div>
+      <div class="l-note">Enter the code exactly as shown.</div>
     </div>
   </div>
 </div>
 
 <!-- ══ DISCONNECT TOAST ══ -->
-<div class="dc-toast" id="dc-toast">⚡ Opponent disconnected</div>
+<div class="dc-toast" id="dc-toast">Opponent disconnected</div>
 
 <!-- ══ HEADER ══ -->
 <header class="hdr">
@@ -256,8 +253,8 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div class="wov" id="wov">
       <div class="wcard">
         <span class="wemoji"></span>
-        <div class="wtitle" id="wtitle">Player 1 Wins!</div>
-        <div class="wsub" id="wsub">Three in a row!</div>
+        <div class="wtitle" id="wtitle">Player 1 Wins</div>
+        <div class="wsub" id="wsub">Three in a row.</div>
         <button class="wagain" onclick="onNewGame()">Play Again</button>
       </div>
     </div>
@@ -265,7 +262,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 
   <aside class="side right">
     <div class="slabel">Move History</div>
-    <div class="log" id="log"><div class="lentry">Game started — Player 1 goes first.</div></div>
+    <div class="log" id="log"><div class="lentry">Game started: Player 1 goes first.</div></div>
     <div class="div"></div>
     <button class="rbtn" onclick="toggleRules()">How to Play</button>
     <div class="rpanel" id="rpanel">
@@ -280,26 +277,18 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 </div>
 
 <script>
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  SERVER URL                                                  ║
-// ║  Change the second line to your Render/Railway server URL.  ║
-// ╚══════════════════════════════════════════════════════════════╝
+
 const isLocal = ['localhost','127.0.0.1',''].includes(window.location.hostname);
 const SERVER_URL = isLocal
   ? 'ws://localhost:3000'
-  : 'wss://tictacgrow.onrender.com';   // ← REPLACE THIS
+  : 'wss://tictacgrow.onrender.com';
 
-// ═══════════════════════════════════════════════════════════════
-//  NETWORK STATE
-// ═══════════════════════════════════════════════════════════════
+
 let ws       = null;
 let isOnline = false;
 let myRole   = null;   // 'host' | 'guest'
 let roomCode = null;
 
-// ═══════════════════════════════════════════════════════════════
-//  WEBSOCKET LAYER
-// ═══════════════════════════════════════════════════════════════
 
 function connectWS(onOpen) {
   if (ws) { try { ws.close(); } catch(e){} ws = null; }
@@ -351,7 +340,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
-      logNet('Connected! You are x — go first.');
+      logNet('Connected. You are x: go first.');
       break;
 
     case 'joined':
@@ -361,7 +350,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
-      logNet('Connected! You are o— wait for opponent.');
+      logNet('Connected. You are o: wait for opponent.');
       break;
 
     case 'state':
@@ -370,8 +359,8 @@ function handleServerMessage(data) {
 
     case 'reset':
       document.getElementById('wov').classList.remove('show');
-      document.getElementById('log').innerHTML = '<div class="lentry">Game reset — Player 1 goes first.</div>';
-      if (isOnline) logNet('Online — ' + (myRole==='host' ? 'You are x (P1).' : 'You are o (P2).'));
+      document.getElementById('log').innerHTML = '<div class="lentry">Game reset: Player 1 goes first.</div>';
+      if (isOnline) logNet('Online: ' + (myRole==='host' ? 'You are x (P1).' : 'You are o (P2).'));
       applyServerState(data.state, null, true);
       break;
 
@@ -410,15 +399,15 @@ function showWinScreen() {
   if (isOnline) {
     const iWon = (myRole==='host' && curP===1) || (myRole==='guest' && curP===2);
     title = iWon ? 'You Win' : 'Opponent Wins';
-    sub   = iWon ? 'Three in a row!' : 'Better luck next time.';
+    sub   = iWon ? 'Three in a row.' : 'Better luck next time.';
   } else {
-    title = `Player ${curP} (${sym}) Wins`;
-    sub   = 'Three in a row';
+    title = `Player ${curP} (${sym}) Wins!`;
+    sub   = 'Three in a row.';
   }
   document.getElementById('wtitle').textContent = title;
   document.getElementById('wsub').textContent   = sub;
   document.getElementById('wov').classList.add('show');
-  logWin(`Player ${curP} wins with three ${sym}s in a row!`);
+  logWin(`Player ${curP} wins with three ${sym}'s in a row.`);
 }
 
 function logMove(move) {
@@ -426,12 +415,12 @@ function logMove(move) {
   const sym = p===1 ? 'x' : 'o';
   const cls = p===1 ? 'lx' : 'lo';
   let text;
-  if      (move.action==='tic')  text = `Tic — placed ${sym} at (${move.x},${move.y})`;
+  if      (move.action==='tic')  text = `Tic: placed ${sym} at (${move.x},${move.y})`;
   else if (move.action==='grow') {
     const coords = move.placements.map(pl => `(${pl.x},${pl.y})`).join(', ');
-    text = `Grow from (${move.ox},${move.oy}) → ${coords}`;
+    text = `Grow from (${move.ox},${move.oy}) to ${coords}`;
   }
-  else if (move.action==='no')   text = `No — blacked out (${move.x},${move.y})`;
+  else if (move.action==='no')   text = `No: blacked out (${move.x},${move.y})`;
   else return;
   const div = document.createElement('div');
   div.className = 'lentry';
@@ -451,9 +440,7 @@ function sendOnlineMove(data) {
   renderBoard();
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  LOBBY
-// ═══════════════════════════════════════════════════════════════
+
 
 function showScreen(id) {
   ['ls-choose','ls-host','ls-join'].forEach(s =>
@@ -640,7 +627,7 @@ function buildCell(x,y,sz) {
     const bl=document.createElement('div'); bl.className='blk-fill'; div.appendChild(bl);
   } else if (c.symbol) {
     const s=document.createElement('div');
-    s.className='csym '+(c.symbol==='x'?'x':'o');
+    s.className='csym '+(c.symbol==='X'?'x':'o');
     s.textContent=c.symbol; s.style.fontSize=Math.round(sz*.52)+'px';
     div.appendChild(s);
   }
@@ -703,7 +690,7 @@ function doTic(x,y) {
   const c=getC(x,y);
   if (!c.hasBox||c.blackedOut||c.symbol) { setStatus('Tic','Invalid — pick an empty, non-blacked-out box.'); return; }
   if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
-  const sym=curP===1?'x':'o';
+  const sym=curP===1?'X':'O';
   setC(x,y,{symbol:sym});
   log(`Tic — placed ${sym} at (${x},${y})`);
   if (checkWin(sym)) { endGameLocal(); return; }
