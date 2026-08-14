@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TicTacGrow</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#191919;--panel:#212121;--panel2:#2a2a2a;--border:#363636;--border2:#484848;
+  --x:#c83838;--o:#2090b0;--gold:#f0c040;--green:#38c870;--text:#d6d2cc;--muted:#747070;
+  --box-a:#f2ede2;--box-b:#e3ddd1;--grid-a:#2d2d2d;--grid-b:#242424;
+}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.hdr{height:52px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
+.logo{font-size:1.15rem;font-weight:700;letter-spacing:.06em}
+.logo b{color:var(--x)}.logo i{color:var(--o);font-style:normal}
+.hdr-space{flex:1}
+.turn-pill{font-size:.75rem;font-weight:600;padding:5px 13px;border-radius:20px;border:1.5px solid var(--border2);color:var(--muted);letter-spacing:.03em;transition:all .2s}
+.turn-pill.xp{border-color:var(--x);color:var(--x);background:rgba(200,56,56,.08)}
+.turn-pill.op{border-color:var(--o);color:var(--o);background:rgba(32,144,176,.08)}
+.hdr-btn{background:none;border:1.5px solid var(--border2);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.hdr-btn:hover{border-color:var(--text);color:var(--text)}
+.conn-badge{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--muted);padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);transition:all .3s}
+.conn-badge.online{border-color:#38c870;color:#38c870;background:rgba(56,200,112,.07)}
+.conn-badge.waiting{border-color:var(--gold);color:var(--gold);background:rgba(240,192,64,.07)}
+.conn-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.conn-badge.online .conn-dot,.conn-badge.waiting .conn-dot{animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.main{flex:1;display:flex;overflow:hidden;min-height:0}
+.side{width:230px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px;gap:10px;overflow-y:auto}
+.side.right{border-right:none;border-left:1px solid var(--border)}
+.pcard{border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:11px;position:relative;transition:all .2s;overflow:hidden}
+.pcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px}
+.pcard.px::before{background:var(--x)}.pcard.po::before{background:var(--o)}
+.pcard.active{border-color:var(--gold);background:rgba(240,192,64,.05)}.pcard.active::before{background:var(--gold)}
+.psym{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:700;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.pcard.px .psym{background:rgba(200,56,56,.14);color:var(--x)}
+.pcard.po .psym{background:rgba(32,144,176,.14);color:var(--o)}
+.pinfo{flex:1;min-width:0}.pname{font-size:.72rem;color:var(--muted);font-weight:500}
+.plabel{font-size:.9rem;font-weight:700;color:var(--text)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;animation:pulse 1.4s infinite}
+.slabel{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 2px}
+.abtn{width:100%;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:11px;transition:all .15s;font-family:inherit}
+.abtn:hover:not(:disabled){border-color:var(--border2);background:#313131}
+.abtn.sel{border-color:var(--gold);background:rgba(240,192,64,.08)}
+.abtn:disabled{opacity:.3;cursor:not-allowed}
+.aicon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-weight:700}
+.abtn.tic .aicon{background:rgba(200,56,56,.14);color:var(--x)}
+.abtn.grow .aicon{background:rgba(56,200,112,.14);color:var(--green)}
+.abtn.no .aicon{background:rgba(255,255,255,.05);color:var(--muted)}
+.atitle{font-size:.88rem;font-weight:700;line-height:1.2}
+.adesc{font-size:.7rem;color:var(--muted);margin-top:1px}
+.scard{background:var(--panel2);border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;min-height:54px}
+.stitle{font-weight:700;color:var(--text);font-size:.83rem;margin-bottom:3px}
+.smsg{color:var(--muted);font-size:.76rem;line-height:1.45}
+.ctrl-row{display:flex;gap:7px}
+.btn-ok,.btn-can{flex:1;padding:8px 10px;border-radius:8px;border:none;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-ok{background:var(--green);color:#071a0e}
+.btn-ok:hover:not(:disabled){filter:brightness(1.1)}
+.btn-ok:disabled{opacity:.35;cursor:not-allowed}
+.btn-can{background:rgba(255,255,255,.07);color:var(--text)}
+.btn-can:hover{background:rgba(255,255,255,.13)}
+.btn-can-full{width:100%;padding:8px;border-radius:8px;border:none;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;background:rgba(255,255,255,.07);color:var(--text);transition:all .15s}
+.btn-can-full:hover{background:rgba(255,255,255,.13)}
+.div{height:1px;background:var(--border)}
+.log{flex:1;overflow-y:auto;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:.75rem;display:flex;flex-direction:column;gap:2px;min-height:80px}
+.lentry{padding:3px 6px;border-radius:4px;color:var(--muted);line-height:1.45}
+.lentry .lx{color:var(--x);font-weight:700}.lentry .lo{color:var(--o);font-weight:700}
+.lentry.lwin{background:rgba(240,192,64,.09);color:var(--gold);font-weight:600}
+.lentry.lnet{color:#5a8a6a;font-style:italic}
+.rbtn{background:none;border:1.5px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:8px;font-size:.77rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;width:100%}
+.rbtn:hover{border-color:var(--border2);color:var(--text)}
+.rpanel{display:none;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:.74rem;color:var(--muted);line-height:1.55}
+.rpanel.open{display:block}
+.rpanel strong{color:var(--text);display:block;margin-top:7px;margin-bottom:1px;font-size:.76rem}
+.rpanel strong:first-child{margin-top:0}
+.barea{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;background:var(--bg);position:relative}
+#board{display:inline-grid;gap:1px;background:#141414;padding:1px}
+.cell{position:relative;border-radius:0;display:flex;align-items:center;justify-content:center;user-select:none;cursor:default;overflow:hidden}
+.csym{font-family:'JetBrains Mono',monospace;font-weight:700;line-height:1;pointer-events:none;position:relative;z-index:2}
+.csym.x{color:var(--x)}.csym.o{color:var(--o)}
+.blk-fill{position:absolute;inset:4px;background:#060608;z-index:1;pointer-events:none}
+.cell::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;border:0px solid transparent;background:transparent;transition:border-color .1s,background .1s}
+.cell.h-tic{cursor:pointer}.cell.h-tic::after{border:2px solid rgba(200,56,56,.45);background:rgba(200,56,56,.07)}
+.cell.h-tic:hover::after{border-color:var(--x);background:rgba(200,56,56,.18)}
+.cell.h-ori{cursor:pointer}.cell.h-ori::after{border:2px solid rgba(240,192,64,.4);background:rgba(240,192,64,.05)}
+.cell.h-ori:hover::after{border-color:var(--gold);background:rgba(240,192,64,.14)}
+.cell.sel-ori{cursor:pointer}.cell.sel-ori::after{border:3px solid var(--gold);background:rgba(240,192,64,.16)}
+.cell.h-grow{cursor:pointer}.cell.h-grow::after{border:2px dashed rgba(56,200,112,.6);background:rgba(56,200,112,.09)}
+.cell.h-grow:hover::after{border-color:var(--green);background:rgba(56,200,112,.22)}
+.cell.sel-grow{cursor:pointer}.cell.sel-grow::after{border:3px solid var(--green);background:rgba(56,200,112,.2)}
+.cell.h-no{cursor:pointer}.cell.h-no:hover::after{border:2px solid rgba(200,56,56,.55);background:rgba(200,56,56,.1)}
+.cell.won::after{border:3px solid var(--gold);background:rgba(240,192,64,.2);animation:wglow .75s ease infinite alternate}
+@keyframes wglow{from{border-color:var(--gold);background:rgba(240,192,64,.2)}to{border-color:rgba(240,192,64,.55);background:rgba(240,192,64,.08)}}
+.wov{position:absolute;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
+.wov.show{display:flex}
+.wcard{background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:44px 52px;text-align:center;max-width:380px}
+.wemoji{font-size:3rem;margin-bottom:14px;display:block}
+.wtitle{font-size:2rem;font-weight:700;margin-bottom:7px}
+.wsub{color:var(--muted);font-size:.95rem;margin-bottom:28px}
+.wagain{background:var(--gold);color:#0a0900;border:none;border-radius:10px;padding:13px 38px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.wagain:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.dc-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:#2a1a1a;border:1.5px solid #8b3030;border-radius:10px;padding:10px 20px;font-size:.82rem;font-weight:600;color:#e88080;z-index:200;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap}
+.dc-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+
+/* ── LOBBY ── */
+.lobby{position:fixed;inset:0;z-index:100;background:rgba(15,15,15,.96);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;transition:opacity .3s}
+.lobby.hidden{opacity:0;pointer-events:none}
+.lcard{background:var(--panel);border:1.5px solid var(--border);border-radius:18px;padding:40px 44px;width:390px;display:flex;flex-direction:column}
+.lcard-logo{font-size:1.6rem;font-weight:700;letter-spacing:.05em;margin-bottom:6px}
+.lcard-logo b{color:var(--x)}.lcard-logo i{color:var(--o);font-style:normal}
+.lcard-sub{font-size:.82rem;color:var(--muted);margin-bottom:28px}
+.lscreen{display:none;flex-direction:column;gap:10px}.lscreen.active{display:flex}
+.lbig{width:100%;padding:14px 18px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;text-align:left;transition:all .15s}
+.lbig:hover{border-color:var(--border2);background:#313131}
+.lbig .lbig-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.lbig.local .lbig-icon{background:rgba(200,56,56,.12)}
+.lbig.host .lbig-icon{background:rgba(56,200,112,.12)}
+.lbig.join .lbig-icon{background:rgba(32,144,176,.12)}
+.lbig-title{font-size:.92rem;font-weight:700;line-height:1.2}
+.lbig-desc{font-size:.72rem;color:var(--muted);margin-top:2px}
+.code-box{background:var(--panel2);border:1.5px solid var(--border);border-radius:12px;padding:18px;text-align:center}
+.code-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.code-val{font-family:'JetBrains Mono',monospace;font-size:2.2rem;font-weight:700;letter-spacing:.25em;color:var(--text);margin-bottom:12px}
+.code-copy{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.code-copy:hover{border-color:var(--border2);color:var(--text)}
+.code-copy.copied{border-color:var(--green);color:var(--green)}
+.wait-row{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.linput{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);font-size:1.1rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.2em;text-transform:uppercase;outline:none;transition:border-color .15s;text-align:center}
+.linput:focus{border-color:var(--border2)}
+.linput::placeholder{color:var(--muted);letter-spacing:.1em;font-size:.9rem}
+.lerr{font-size:.76rem;color:#e87070;text-align:center;min-height:18px}
+.l-action-row{display:flex;gap:8px}
+.lbtn-pri{flex:1;padding:10px 14px;border-radius:9px;border:none;background:var(--green);color:#071a0e;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.lbtn-pri:hover:not(:disabled){filter:brightness(1.08)}
+.lbtn-pri:disabled{opacity:.4;cursor:not-allowed}
+.lbtn-sec{padding:10px 14px;border-radius:9px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.lbtn-sec:hover{border-color:var(--border2);color:var(--text)}
+.l-note{font-size:.68rem;color:var(--muted);text-align:center;margin-top:4px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+</style>
+</head>
+<body>
+
+<!-- ══ LOBBY ══ -->
+<div class="lobby" id="lobby">
+  <div class="lcard">
+    <div class="lcard-logo">Tic<b>Tac</b><i>Grow</i></div>
+    <div class="lcard-sub">A growing game of three in a row</div>
+
+    <!-- Choose mode -->
+    <div class="lscreen active" id="ls-choose">
+      <button class="lbig local" onclick="startLocal()">
+        <div class="lbig-icon">🖥</div>
+        <div><div class="lbig-title">Play Locally</div><div class="lbig-desc">Two players, one screen</div></div>
+      </button>
+      <button class="lbig host" onclick="showHostScreen()">
+        <div class="lbig-icon">📡</div>
+        <div><div class="lbig-title">Host a Game</div><div class="lbig-desc">Get a code, share with your friend</div></div>
+      </button>
+      <button class="lbig join" onclick="showJoinScreen()">
+        <div class="lbig-icon">🔗</div>
+        <div><div class="lbig-title">Join a Game</div><div class="lbig-desc">Enter a friend's room code</div></div>
+      </button>
+    </div>
+
+    <!-- Hosting -->
+    <div class="lscreen" id="ls-host">
+      <div class="code-box">
+        <div class="code-label">Room Code</div>
+        <div class="code-val" id="code-display">——</div>
+        <button class="code-copy" id="copy-btn" onclick="copyCode()">Copy Code</button>
+      </div>
+      <div class="wait-row">
+        <div class="spinner"></div>
+        <span id="wait-text">Connecting to server…</span>
+      </div>
+      <div class="l-action-row">
+        <button class="lbtn-sec" onclick="cancelLobby()">Cancel</button>
+      </div>
+      <div class="l-note">Share the room code. Both players need a browser and an internet connection.</div>
+    </div>
+
+    <!-- Joining -->
+    <div class="lscreen" id="ls-join">
+      <input class="linput" id="join-input" maxlength="6" placeholder="6-char code"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+        onkeydown="if(event.key==='Enter')doJoin()">
+      <div class="lerr" id="join-err"></div>
+      <div class="l-action-row">
+        <button class="lbtn-pri" id="join-btn" onclick="doJoin()">Connect</button>
+        <button class="lbtn-sec" onclick="showChooseScreen()">Back</button>
+      </div>
+      <div class="l-note">Enter the code exactly as shown to your friend.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DISCONNECT TOAST ══ -->
+<div class="dc-toast" id="dc-toast">⚡ Opponent disconnected</div>
+
+<!-- ══ HEADER ══ -->
+<header class="hdr">
+  <span class="logo">Tic<b>Tac</b><i>Grow</i></span>
+  <div class="hdr-space"></div>
+  <div class="conn-badge" id="conn-badge" style="display:none">
+    <div class="conn-dot"></div><span id="conn-label">Online</span>
+  </div>
+  <div class="turn-pill xp" id="turn-pill">Player 1's Turn</div>
+  <button class="hdr-btn" onclick="onNewGame()">New Game</button>
+</header>
+
+<div class="main">
+  <aside class="side">
+    <div id="p1c" class="pcard px active">
+      <div class="psym">X</div>
+      <div class="pinfo"><div class="pname" id="p1name">Player 1</div><div class="plabel">Crosses</div></div>
+      <div class="dot" id="d1"></div>
+    </div>
+    <div id="p2c" class="pcard po">
+      <div class="psym">O</div>
+      <div class="pinfo"><div class="pname" id="p2name">Player 2</div><div class="plabel">Noughts</div></div>
+      <div class="dot" id="d2" style="display:none"></div>
+    </div>
+    <div class="div"></div>
+    <div class="slabel">Choose Action</div>
+    <button id="btn-tic" class="abtn tic" onclick="selectAction('tic')">
+      <div class="aicon">X</div><div><div class="atitle">Tic</div><div class="adesc">Place your symbol in a box</div></div>
+    </button>
+    <button id="btn-grow" class="abtn grow" onclick="selectAction('grow')">
+      <div class="aicon">+</div><div><div class="atitle">Grow</div><div class="adesc">Add 1–2 new full boxes</div></div>
+    </button>
+    <button id="btn-no" class="abtn no" onclick="selectAction('no')">
+      <div class="aicon">■</div><div><div class="atitle">No</div><div class="adesc">Black out any space</div></div>
+    </button>
+    <div class="scard"><div class="stitle" id="stitle">Your Turn</div><div class="smsg" id="smsg">Select an action above.</div></div>
+    <div id="ctrl-grow" style="display:none">
+      <div class="ctrl-row">
+        <button class="btn-ok" id="btn-ok" onclick="confirmGrow()" disabled>Confirm (0)</button>
+        <button class="btn-can" onclick="cancelAction()">Cancel</button>
+      </div>
+    </div>
+    <div id="ctrl-cancel" style="display:none">
+      <button class="btn-can-full" onclick="cancelAction()">Cancel</button>
+    </div>
+  </aside>
+
+  <main class="barea" id="barea">
+    <div id="board"></div>
+    <div class="wov" id="wov">
+      <div class="wcard">
+        <span class="wemoji">🏆</span>
+        <div class="wtitle" id="wtitle">Player 1 Wins!</div>
+        <div class="wsub" id="wsub">Three in a row!</div>
+        <button class="wagain" onclick="onNewGame()">Play Again</button>
+      </div>
+    </div>
+  </main>
+
+  <aside class="side right">
+    <div class="slabel">Move History</div>
+    <div class="log" id="log"><div class="lentry">Game started — Player 1 goes first.</div></div>
+    <div class="div"></div>
+    <button class="rbtn" onclick="toggleRules()">📋 How to Play</button>
+    <div class="rpanel" id="rpanel">
+      <strong>TIC</strong>Click any empty full box. Places your symbol.
+      <strong>GROW</strong>Click a full box as origin (blacked-out boxes count). Then click 1 or 2 empty spaces adjacent or diagonal to it.
+      <strong>NO</strong>Click any space to black it out. Removes any symbol; keeps box status. Cannot be orthogonally adjacent to another blackout.
+      <strong>WIN</strong>Three symbols in a row — horizontal, vertical, or diagonal. Blacked-out squares break any line.
+    </div>
+    <div style="flex:1"></div>
+    <div style="text-align:center;font-size:.7rem;color:var(--muted)">TicTacGrow · Local &amp; Online</div>
+  </aside>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  SERVER URL                                                  ║
+// ║  Change the second line to your Render/Railway server URL.  ║
+// ╚══════════════════════════════════════════════════════════════╝
+const isLocal = ['localhost','127.0.0.1',''].includes(window.location.hostname);
+const SERVER_URL = isLocal
+  ? 'ws://localhost:3000'
+  : 'wss://tictacgrow.onrender.com';   // ← REPLACE THIS
+
+// ═══════════════════════════════════════════════════════════════
+//  NETWORK STATE
+// ═══════════════════════════════════════════════════════════════
+let ws       = null;
+let isOnline = false;
+let myRole   = null;   // 'host' | 'guest'
+let roomCode = null;
+
+// ═══════════════════════════════════════════════════════════════
+//  WEBSOCKET LAYER
+// ═══════════════════════════════════════════════════════════════
+
+function connectWS(onOpen) {
+  if (ws) { try { ws.close(); } catch(e){} ws = null; }
+  try { ws = new WebSocket(SERVER_URL); }
+  catch(e) { setLobbyErr('Invalid server URL. Check the SERVER_URL in index.html.'); return; }
+
+  ws.onopen = () => {
+    ws._hb = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send('{"type":"ping"}');
+    }, 25000);
+    if (onOpen) onOpen();
+  };
+
+  ws.onerror = () => {
+    setLobbyErr('Cannot reach server. Check SERVER_URL or try again in a moment.');
+    resetJoinBtn();
+  };
+
+  ws.onclose = () => {
+    if (ws && ws._hb) clearInterval(ws._hb);
+    if (isOnline) onDisconnect();
+  };
+
+  ws.onmessage = e => {
+    try { handleServerMessage(JSON.parse(e.data)); }
+    catch(err) { console.error('Parse error:', err); }
+  };
+}
+
+function sendToServer(data) {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
+}
+
+function handleServerMessage(data) {
+  switch(data.type) {
+    case 'pong': break;
+
+    case 'created':
+      roomCode = data.code;
+      document.getElementById('code-display').textContent = data.code;
+      document.getElementById('wait-text').textContent = 'Waiting for opponent to join…';
+      updateConnBadge('waiting');
+      break;
+
+    case 'opponent-joined':
+      myRole = 'host'; isOnline = true;
+      document.getElementById('p1name').textContent = 'You';
+      document.getElementById('p2name').textContent = 'Opponent';
+      updateConnBadge('online');
+      hideLobby();
+      applyServerState(data.state, null, true);
+      logNet('🔗 Connected! You are X — go first.');
+      break;
+
+    case 'joined':
+      myRole = 'guest'; isOnline = true;
+      document.getElementById('p1name').textContent = 'Opponent';
+      document.getElementById('p2name').textContent = 'You';
+      updateConnBadge('online');
+      hideLobby();
+      applyServerState(data.state, null, true);
+      logNet('🔗 Connected! You are O — wait for opponent.');
+      break;
+
+    case 'state':
+      applyServerState(data.state, data.move, false);
+      break;
+
+    case 'reset':
+      document.getElementById('wov').classList.remove('show');
+      document.getElementById('log').innerHTML = '<div class="lentry">Game reset — Player 1 goes first.</div>';
+      if (isOnline) logNet('🔗 Online — ' + (myRole==='host' ? 'You are X (P1).' : 'You are O (P2).'));
+      applyServerState(data.state, null, true);
+      break;
+
+    case 'error':
+      if (!isOnline) { setLobbyErr(data.message); resetJoinBtn(); }
+      else { setStatus('Error', data.message); updatePlayerUI(); }
+      break;
+
+    case 'opponent-disconnected':
+      onDisconnect();
+      break;
+  }
+}
+
+// Apply authoritative state from server
+function applyServerState(state, move, isInit) {
+  cells    = state.cells;
+  curP     = state.curP;
+  over     = state.over;
+  winCells = state.winCells || [];
+  phase    = 'idle';
+  gOrigin  = null;
+  gSel     = [];
+  ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).classList.remove('sel'));
+  showCtrl('none');
+  if (!isInit && move) logMove(move);
+  if (over) showWinScreen();
+  updatePlayerUI();
+  renderBoard();
+}
+
+function showWinScreen() {
+  if (document.getElementById('wov').classList.contains('show')) return;
+  const sym = curP===1 ? 'X' : 'O';
+  let title, sub;
+  if (isOnline) {
+    const iWon = (myRole==='host' && curP===1) || (myRole==='guest' && curP===2);
+    title = iWon ? 'You Win! 🎉' : 'Opponent Wins';
+    sub   = iWon ? 'Three in a row!' : 'Better luck next time.';
+  } else {
+    title = `Player ${curP} (${sym}) Wins!`;
+    sub   = 'Three in a row!';
+  }
+  document.getElementById('wtitle').textContent = title;
+  document.getElementById('wsub').textContent   = sub;
+  document.getElementById('wov').classList.add('show');
+  logWin(`🏆 Player ${curP} wins with three ${sym}s in a row!`);
+}
+
+function logMove(move) {
+  const p   = move.role==='host' ? 1 : 2;
+  const sym = p===1 ? 'X' : 'O';
+  const cls = p===1 ? 'lx' : 'lo';
+  let text;
+  if      (move.action==='tic')  text = `Tic — placed ${sym} at (${move.x},${move.y})`;
+  else if (move.action==='grow') {
+    const coords = move.placements.map(pl => `(${pl.x},${pl.y})`).join(', ');
+    text = `Grow from (${move.ox},${move.oy}) → ${coords}`;
+  }
+  else if (move.action==='no')   text = `No — blacked out (${move.x},${move.y})`;
+  else return;
+  const div = document.createElement('div');
+  div.className = 'lentry';
+  div.innerHTML = `<span class="${cls}">P${p}</span> ${text}`;
+  const l = document.getElementById('log'); l.appendChild(div); l.scrollTop = l.scrollHeight;
+}
+
+// Send a move to server and lock UI until server responds
+function sendOnlineMove(data) {
+  sendToServer({ type:'move', ...data });
+  phase='idle'; gOrigin=null; gSel=[];
+  ['tic','grow','no'].forEach(id => {
+    document.getElementById('btn-'+id).classList.remove('sel');
+    document.getElementById('btn-'+id).disabled = true;
+  });
+  showCtrl('none');
+  renderBoard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOBBY
+// ═══════════════════════════════════════════════════════════════
+
+function showScreen(id) {
+  ['ls-choose','ls-host','ls-join'].forEach(s =>
+    document.getElementById(s).classList.toggle('active', s===id));
+}
+
+function showChooseScreen() {
+  if (ws) { try { ws.close(); } catch(e){} ws=null; }
+  isOnline=false; myRole=null; roomCode=null;
+  updateConnBadge();
+  showScreen('ls-choose');
+  setLobbyErr('');
+}
+
+function showHostScreen() {
+  showScreen('ls-host');
+  document.getElementById('code-display').textContent = '——';
+  document.getElementById('copy-btn').textContent = 'Copy Code';
+  document.getElementById('copy-btn').classList.remove('copied');
+  document.getElementById('wait-text').textContent = 'Connecting to server…';
+  updateConnBadge('waiting');
+  connectWS(() => sendToServer({ type:'create' }));
+}
+
+function showJoinScreen() {
+  showScreen('ls-join');
+  setLobbyErr('');
+  document.getElementById('join-input').value = '';
+  document.getElementById('join-input').focus();
+}
+
+function startLocal() {
+  if (ws) { try { ws.close(); } catch(e){} ws=null; }
+  isOnline=false; myRole=null;
+  hideLobby();
+  resetGame();
+}
+
+function cancelLobby() {
+  if (ws) { try { ws.close(); } catch(e){} ws=null; }
+  isOnline=false; myRole=null; roomCode=null;
+  updateConnBadge();
+  showScreen('ls-choose');
+}
+
+function hideLobby() {
+  const lb = document.getElementById('lobby');
+  lb.classList.add('hidden');
+  setTimeout(() => lb.style.display='none', 350);
+}
+
+function doJoin() {
+  const code = document.getElementById('join-input').value.trim().toUpperCase();
+  if (code.length !== 6) { setLobbyErr('Code must be exactly 6 characters.'); return; }
+  setLobbyErr('');
+  const btn = document.getElementById('join-btn');
+  btn.disabled=true; btn.textContent='Connecting…';
+  connectWS(() => sendToServer({ type:'join', code }));
+}
+
+function copyCode() {
+  if (!roomCode) return;
+  navigator.clipboard.writeText(roomCode).catch(()=>{});
+  const btn = document.getElementById('copy-btn');
+  btn.textContent='Copied!'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent='Copy Code'; btn.classList.remove('copied'); }, 2000);
+}
+
+function setLobbyErr(msg) { document.getElementById('join-err').textContent = msg; }
+
+function resetJoinBtn() {
+  const b = document.getElementById('join-btn');
+  if (b) { b.disabled=false; b.textContent='Connect'; }
+}
+
+function onDisconnect() {
+  if (!isOnline) return;
+  isOnline = false;
+  updateConnBadge();
+  showToast('⚡ Opponent disconnected');
+  over=true; phase='idle'; showCtrl('none');
+  ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
+  renderBoard();
+}
+
+function onNewGame() {
+  if (isOnline) { sendToServer({ type:'reset' }); }
+  else          { resetGame(); }
+}
+
+function updateConnBadge(state) {
+  const badge = document.getElementById('conn-badge');
+  const label = document.getElementById('conn-label');
+  badge.className = 'conn-badge';
+  if (state==='online') {
+    badge.style.display='flex'; badge.classList.add('online');
+    label.textContent = myRole==='host' ? 'Online · Host' : 'Online · Guest';
+  } else if (state==='waiting') {
+    badge.style.display='flex'; badge.classList.add('waiting');
+    label.textContent = 'Connecting…';
+  } else {
+    badge.style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════════
+const BUFFER = 3;
+let cells={}, curP=1, phase='idle', gOrigin=null, gSel=[], winCells=[], over=false;
+
+// ═══════════════════════════════════════════════════════════════
+//  KEY HELPERS
+// ═══════════════════════════════════════════════════════════════
+const K   = (x,y) => `${x},${y}`;
+const unK = k => { const[x,y]=k.split(',').map(Number); return{x,y}; };
+function getC(x,y) { return cells[K(x,y)]||{hasBox:false,blackedOut:false,symbol:null}; }
+function setC(x,y,u) { cells[K(x,y)]={...getC(x,y),...u}; }
+
+// ═══════════════════════════════════════════════════════════════
+//  GEOMETRY
+// ═══════════════════════════════════════════════════════════════
+function isAdjOrDiag(ax,ay,bx,by) { return Math.abs(ax-bx)<=1 && Math.abs(ay-by)<=1 && !(ax===bx&&ay===by); }
+function bounds() {
+  let mn=0,mx=2,my=0,ny=2,first=true;
+  for (const k in cells) {
+    const{x,y}=unK(k);
+    if(first){mn=x;mx=x;my=y;ny=y;first=false;}
+    else{if(x<mn)mn=x;if(x>mx)mx=x;if(y<my)my=y;if(y>ny)ny=y;}
+  }
+  return{minX:mn,maxX:mx,minY:my,maxY:ny};
+}
+function viewBounds() {
+  const b=bounds();
+  return{minX:b.minX-BUFFER,maxX:b.maxX+BUFFER,minY:b.minY-BUFFER,maxY:b.maxY+BUFFER};
+}
+function cellSize() {
+  const vb=viewBounds();
+  const cols=vb.maxX-vb.minX+1, rows=vb.maxY-vb.minY+1;
+  const ba=document.getElementById('barea');
+  const aw=(ba.clientWidth||600)-40, ah=(ba.clientHeight||600)-40;
+  return Math.max(26,Math.min(68,Math.floor((aw-cols)/cols),Math.floor((ah-rows)/rows)));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VALIDATION  (mirrors server — used for client-side UX only)
+// ═══════════════════════════════════════════════════════════════
+function canGrow(x,y) {
+  if (!gOrigin||gSel.length>=2) return false;
+  if (gSel.some(p=>p.x===x&&p.y===y)) return false;
+  if (getC(x,y).hasBox) return false;
+  return isAdjOrDiag(x,y,gOrigin.x,gOrigin.y);
+}
+function canNo(x,y) {
+  if (getC(x,y).blackedOut) return false;
+  for (const[dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]])
+    if (getC(x+dx,y+dy).blackedOut) return false;
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderBoard() {
+  const board=document.getElementById('board');
+  const vb=viewBounds(), sz=cellSize(), cols=vb.maxX-vb.minX+1;
+  board.style.gridTemplateColumns=`repeat(${cols},${sz}px)`;
+  board.innerHTML='';
+  for (let y=vb.minY;y<=vb.maxY;y++)
+    for (let x=vb.minX;x<=vb.maxX;x++)
+      board.appendChild(buildCell(x,y,sz));
+}
+
+function buildCell(x,y,sz) {
+  const c=getC(x,y);
+  const div=document.createElement('div');
+  div.className='cell';
+  div.style.cssText=`width:${sz}px;height:${sz}px`;
+  const even=(x+y)%2===0;
+  if (c.hasBox) { div.classList.add('has-box'); div.style.background=even?'var(--box-a)':'var(--box-b)'; }
+  else          { div.classList.add('no-box');  div.style.background=even?'var(--grid-a)':'var(--grid-b)'; }
+  if (c.blackedOut) {
+    div.classList.add('blk');
+    const bl=document.createElement('div'); bl.className='blk-fill'; div.appendChild(bl);
+  } else if (c.symbol) {
+    const s=document.createElement('div');
+    s.className='csym '+(c.symbol==='X'?'x':'o');
+    s.textContent=c.symbol; s.style.fontSize=Math.round(sz*.52)+'px';
+    div.appendChild(s);
+  }
+  if (winCells.some(w=>w.x===x&&w.y===y)) div.classList.add('won');
+  if (!over) {
+    if      (phase==='tic'     && c.hasBox&&!c.blackedOut&&!c.symbol) div.classList.add('h-tic');
+    else if (phase==='grow_ori'&& c.hasBox) div.classList.add('h-ori');
+    else if (phase==='grow_pl') {
+      if      (gOrigin&&x===gOrigin.x&&y===gOrigin.y) div.classList.add('sel-ori');
+      else if (gSel.some(p=>p.x===x&&p.y===y))         div.classList.add('sel-grow');
+      else if (canGrow(x,y))                             div.classList.add('h-grow');
+    }
+    else if (phase==='no' && canNo(x,y)) div.classList.add('h-no');
+  }
+  div.addEventListener('click', ()=>handleClick(x,y));
+  return div;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ACTION SELECTION
+// ═══════════════════════════════════════════════════════════════
+function selectAction(a) {
+  if (over) return;
+  if (isOnline && !isMyTurn()) return;
+  cancelAction(false);
+  ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).classList.remove('sel'));
+  document.getElementById('btn-'+a).classList.add('sel');
+  if      (a==='tic')  { phase='tic'; setStatus('Tic','Click an empty box.'); showCtrl('cancel'); }
+  else if (a==='grow') { phase='grow_ori'; gOrigin=null; gSel=[]; setStatus('Grow','Click a full box as the grow origin.'); showCtrl('none'); }
+  else if (a==='no')   { phase='no'; setStatus('No','Click any space to black it out.'); showCtrl('cancel'); }
+  renderBoard();
+}
+
+function cancelAction(doRender=true) {
+  phase='idle'; gOrigin=null; gSel=[];
+  ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).classList.remove('sel'));
+  showCtrl('none');
+  if (isOnline&&!isMyTurn()) setStatus('Waiting','Opponent is making their move…');
+  else setStatus('Your Turn','Select an action above.');
+  if (doRender) renderBoard();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CELL CLICKS
+// ═══════════════════════════════════════════════════════════════
+function isMyTurn() {
+  return (myRole==='host'&&curP===1)||(myRole==='guest'&&curP===2);
+}
+
+function handleClick(x,y) {
+  if (over) return;
+  if (isOnline&&!isMyTurn()) return;
+  if      (phase==='tic')      doTic(x,y);
+  else if (phase==='grow_ori') doGrowOri(x,y);
+  else if (phase==='grow_pl')  doGrowPl(x,y);
+  else if (phase==='no')       doNo(x,y);
+}
+
+function doTic(x,y) {
+  const c=getC(x,y);
+  if (!c.hasBox||c.blackedOut||c.symbol) { setStatus('Tic','Invalid — pick an empty, non-blacked-out box.'); return; }
+  if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
+  const sym=curP===1?'X':'O';
+  setC(x,y,{symbol:sym});
+  log(`Tic — placed ${sym} at (${x},${y})`);
+  if (checkWin(sym)) { endGameLocal(); return; }
+  endTurn();
+}
+
+function doGrowOri(x,y) {
+  if (!getC(x,y).hasBox) { setStatus('Grow','That space has no box — click a full box.'); return; }
+  gOrigin={x,y}; phase='grow_pl'; gSel=[];
+  setStatus('Grow','Click 1 or 2 spaces adjacent/diagonal to origin. Click origin to re-pick.');
+  showCtrl('grow'); renderBoard();
+}
+
+function doGrowPl(x,y) {
+  if (gOrigin&&x===gOrigin.x&&y===gOrigin.y) {
+    phase='grow_ori'; gOrigin=null; gSel=[]; showCtrl('none');
+    setStatus('Grow','Click a full box as the grow origin.'); renderBoard(); return;
+  }
+  const idx=gSel.findIndex(p=>p.x===x&&p.y===y);
+  if (idx!==-1) { gSel.splice(idx,1); updateGrowUI(); renderBoard(); return; }
+  if (!canGrow(x,y)) { setStatus('Grow','Invalid — must be adjacent/diagonal to origin with no existing box.'); return; }
+  gSel.push({x,y}); updateGrowUI(); renderBoard();
+}
+
+function updateGrowUI() {
+  const n=gSel.length;
+  const btn=document.getElementById('btn-ok');
+  btn.textContent=`Confirm (${n} box${n===1?'':'es'})`; btn.disabled=n===0;
+  setStatus('Grow', n===0?'Click spaces adjacent/diagonal to the origin.':`${n} selected. Add another or confirm.`);
+}
+
+function confirmGrow() {
+  if (gSel.length===0) return;
+  const ox=gOrigin.x, oy=gOrigin.y, placements=[...gSel];
+  if (isOnline) { sendOnlineMove({action:'grow',ox,oy,placements}); gOrigin=null; gSel=[]; showCtrl('none'); return; }
+  const coords=placements.map(p=>`(${p.x},${p.y})`).join(', ');
+  for (const p of placements) setC(p.x,p.y,{hasBox:true,blackedOut:false,symbol:null});
+  log(`Grow from (${ox},${oy}) — added ${coords}`);
+  gOrigin=null; gSel=[]; showCtrl('none'); endTurn();
+}
+
+function doNo(x,y) {
+  if (!canNo(x,y)) { setStatus('No','Cannot black out — adjacent to another blacked-out space.'); return; }
+  const hadSym=getC(x,y).symbol||'';
+  if (isOnline) { sendOnlineMove({action:'no',x,y}); return; }
+  setC(x,y,{blackedOut:true,symbol:null});
+  log(`No — blacked out (${x},${y})${hadSym?' [had '+hadSym+']':''}`);
+  endTurn();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WIN DETECTION  (local mode only)
+// ═══════════════════════════════════════════════════════════════
+function checkWin(sym) {
+  const dirs=[[1,0],[0,1],[1,1],[1,-1]];
+  for (const k in cells) {
+    const c=cells[k];
+    if (c.symbol!==sym||c.blackedOut) continue;
+    const{x,y}=unK(k);
+    for (const[dx,dy] of dirs) {
+      const run=[{x,y}];
+      for (let i=1;i<3;i++) {
+        const nc=getC(x+dx*i,y+dy*i);
+        if (nc.symbol===sym&&!nc.blackedOut) run.push({x:x+dx*i,y:y+dy*i}); else break;
+      }
+      if (run.length===3){winCells=run;return true;}
+    }
+  }
+  return false;
+}
+
+function endGameLocal() {
+  over=true; phase='idle'; showCtrl('none');
+  ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=true);
+  renderBoard(); showWinScreen();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TURN MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function endTurn() {
+  curP=curP===1?2:1; phase='idle'; gOrigin=null; gSel=[];
+  ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).classList.remove('sel'));
+  showCtrl('none'); updatePlayerUI(); renderBoard();
+}
+
+function updatePlayerUI() {
+  document.getElementById('p1c').classList.toggle('active',curP===1);
+  document.getElementById('p2c').classList.toggle('active',curP===2);
+  document.getElementById('d1').style.display=curP===1?'block':'none';
+  document.getElementById('d2').style.display=curP===2?'block':'none';
+  const pill=document.getElementById('turn-pill');
+  if (isOnline) {
+    const mine=isMyTurn();
+    pill.className='turn-pill '+(curP===1?'xp':'op');
+    pill.textContent=mine?'Your Turn':"Opponent's Turn";
+    ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=!mine);
+    if (!mine) setStatus('Waiting','Opponent is making their move…');
+    else if (phase==='idle') setStatus('Your Turn','Select an action above.');
+  } else {
+    pill.className='turn-pill '+(curP===1?'xp':'op');
+    pill.textContent=`Player ${curP}'s Turn`;
+    ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=false);
+    if (phase==='idle') setStatus('Your Turn','Select an action above.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+function setStatus(title,msg) {
+  document.getElementById('stitle').textContent=title;
+  document.getElementById('smsg').textContent=msg;
+}
+
+function showCtrl(mode) {
+  document.getElementById('ctrl-grow').style.display=mode==='grow'?'block':'none';
+  document.getElementById('ctrl-cancel').style.display=mode==='cancel'?'block':'none';
+  if (mode==='grow') { const b=document.getElementById('btn-ok'); b.textContent='Confirm (0 boxes)'; b.disabled=true; }
+}
+
+function log(text) {
+  const div=document.createElement('div'); div.className='lentry';
+  const cls=curP===1?'lx':'lo';
+  div.innerHTML=`<span class="${cls}">P${curP}</span> ${text}`;
+  const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
+}
+function logNet(text) {
+  const div=document.createElement('div'); div.className='lentry lnet'; div.textContent=text;
+  const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
+}
+function logWin(text) {
+  const div=document.createElement('div'); div.className='lentry lwin'; div.textContent=text;
+  const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
+}
+function toggleRules() { document.getElementById('rpanel').classList.toggle('open'); }
+function showToast(msg) {
+  const t=document.getElementById('dc-toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT / RESET
+// ═══════════════════════════════════════════════════════════════
+function resetGame() {
+  cells={}; for(let x=0;x<3;x++) for(let y=0;y<3;y++) setC(x,y,{hasBox:true,blackedOut:false,symbol:null});
+  curP=1; phase='idle'; gOrigin=null; gSel=[]; winCells=[]; over=false;
+  showCtrl('none');
+  ['tic','grow','no'].forEach(id=>{document.getElementById('btn-'+id).classList.remove('sel'); document.getElementById('btn-'+id).disabled=false;});
+  if (!isOnline) {
+    document.getElementById('p1name').textContent='Player 1';
+    document.getElementById('p2name').textContent='Player 2';
+    document.getElementById('log').innerHTML='<div class="lentry">Game started — Player 1 goes first.</div>';
+  }
+  document.getElementById('wov').classList.remove('show');
+  updatePlayerUI(); renderBoard();
+}
+
+window.addEventListener('resize', renderBoard);
+resetGame();
+</script>
+</body>
+</html>
