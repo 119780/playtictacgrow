@@ -627,7 +627,7 @@ function buildCell(x,y,sz) {
     const bl=document.createElement('div'); bl.className='blk-fill'; div.appendChild(bl);
   } else if (c.symbol) {
     const s=document.createElement('div');
-    s.className='csym '+(c.symbol==='X'?'x':'o');
+    s.className='csym '+(c.symbol==='x'?'x':'o');
     s.textContent=c.symbol; s.style.fontSize=Math.round(sz*.52)+'px';
     div.appendChild(s);
   }
@@ -690,7 +690,7 @@ function doTic(x,y) {
   const c=getC(x,y);
   if (!c.hasBox||c.blackedOut||c.symbol) { setStatus('Tic','Invalid — pick an empty, non-blacked-out box.'); return; }
   if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
-  const sym=curP===1?'X':'O';
+  const sym=curP===1?'x':'o';
   setC(x,y,{symbol:sym});
   log(`Tic — placed ${sym} at (${x},${y})`);
   if (checkWin(sym)) { endGameLocal(); return; }
