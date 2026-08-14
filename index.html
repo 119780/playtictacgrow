@@ -219,19 +219,19 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 <div class="main">
   <aside class="side">
     <div id="p1c" class="pcard px active">
-      <div class="psym">X</div>
+      <div class="psym">x</div>
       <div class="pinfo"><div class="pname" id="p1name">Player 1</div><div class="plabel">Crosses</div></div>
       <div class="dot" id="d1"></div>
     </div>
     <div id="p2c" class="pcard po">
-      <div class="psym">O</div>
+      <div class="psym">o</div>
       <div class="pinfo"><div class="pname" id="p2name">Player 2</div><div class="plabel">Noughts</div></div>
       <div class="dot" id="d2" style="display:none"></div>
     </div>
     <div class="div"></div>
     <div class="slabel">Choose Action</div>
     <button id="btn-tic" class="abtn tic" onclick="selectAction('tic')">
-      <div class="aicon">X</div><div><div class="atitle">Tic</div><div class="adesc">Place your symbol in a box</div></div>
+      <div class="aicon">x</div><div><div class="atitle">Tic</div><div class="adesc">Place your symbol in a box</div></div>
     </button>
     <button id="btn-grow" class="abtn grow" onclick="selectAction('grow')">
       <div class="aicon">+</div><div><div class="atitle">Grow</div><div class="adesc">Add 1–2 new full boxes</div></div>
@@ -351,7 +351,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
-      logNet('🔗 Connected! You are X — go first.');
+      logNet('Connected! You are x — go first.');
       break;
 
     case 'joined':
@@ -361,7 +361,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
-      logNet('🔗 Connected! You are O — wait for opponent.');
+      logNet('Connected! You are o— wait for opponent.');
       break;
 
     case 'state':
@@ -371,7 +371,7 @@ function handleServerMessage(data) {
     case 'reset':
       document.getElementById('wov').classList.remove('show');
       document.getElementById('log').innerHTML = '<div class="lentry">Game reset — Player 1 goes first.</div>';
-      if (isOnline) logNet('🔗 Online — ' + (myRole==='host' ? 'You are X (P1).' : 'You are O (P2).'));
+      if (isOnline) logNet('Online — ' + (myRole==='host' ? 'You are x (P1).' : 'You are o (P2).'));
       applyServerState(data.state, null, true);
       break;
 
@@ -405,15 +405,15 @@ function applyServerState(state, move, isInit) {
 
 function showWinScreen() {
   if (document.getElementById('wov').classList.contains('show')) return;
-  const sym = curP===1 ? 'X' : 'O';
+  const sym = curP===1 ? 'x' : 'o';
   let title, sub;
   if (isOnline) {
     const iWon = (myRole==='host' && curP===1) || (myRole==='guest' && curP===2);
-    title = iWon ? 'You Win! 🎉' : 'Opponent Wins';
+    title = iWon ? 'You Win' : 'Opponent Wins';
     sub   = iWon ? 'Three in a row!' : 'Better luck next time.';
   } else {
-    title = `Player ${curP} (${sym}) Wins!`;
-    sub   = 'Three in a row!';
+    title = `Player ${curP} (${sym}) Wins`;
+    sub   = 'Three in a row';
   }
   document.getElementById('wtitle').textContent = title;
   document.getElementById('wsub').textContent   = sub;
@@ -423,7 +423,7 @@ function showWinScreen() {
 
 function logMove(move) {
   const p   = move.role==='host' ? 1 : 2;
-  const sym = p===1 ? 'X' : 'O';
+  const sym = p===1 ? 'x' : 'o';
   const cls = p===1 ? 'lx' : 'lo';
   let text;
   if      (move.action==='tic')  text = `Tic — placed ${sym} at (${move.x},${move.y})`;
@@ -640,7 +640,7 @@ function buildCell(x,y,sz) {
     const bl=document.createElement('div'); bl.className='blk-fill'; div.appendChild(bl);
   } else if (c.symbol) {
     const s=document.createElement('div');
-    s.className='csym '+(c.symbol==='X'?'x':'o');
+    s.className='csym '+(c.symbol==='x'?'x':'o');
     s.textContent=c.symbol; s.style.fontSize=Math.round(sz*.52)+'px';
     div.appendChild(s);
   }
@@ -703,7 +703,7 @@ function doTic(x,y) {
   const c=getC(x,y);
   if (!c.hasBox||c.blackedOut||c.symbol) { setStatus('Tic','Invalid — pick an empty, non-blacked-out box.'); return; }
   if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
-  const sym=curP===1?'X':'O';
+  const sym=curP===1?'x':'o';
   setC(x,y,{symbol:sym});
   log(`Tic — placed ${sym} at (${x},${y})`);
   if (checkWin(sym)) { endGameLocal(); return; }
