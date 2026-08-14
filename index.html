@@ -157,15 +157,15 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <!-- Choose mode -->
     <div class="lscreen active" id="ls-choose">
       <button class="lbig local" onclick="startLocal()">
-        <div class="lbig-icon">🖥</div>
+        <div class="lbig-icon"></div>
         <div><div class="lbig-title">Play Locally</div><div class="lbig-desc">Two players, one screen</div></div>
       </button>
       <button class="lbig host" onclick="showHostScreen()">
-        <div class="lbig-icon">📡</div>
+        <div class="lbig-icon"></div>
         <div><div class="lbig-title">Host a Game</div><div class="lbig-desc">Get a code, share with your friend</div></div>
       </button>
       <button class="lbig join" onclick="showJoinScreen()">
-        <div class="lbig-icon">🔗</div>
+        <div class="lbig-icon"></div>
         <div><div class="lbig-title">Join a Game</div><div class="lbig-desc">Enter a friend's room code</div></div>
       </button>
     </div>
@@ -255,7 +255,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div id="board"></div>
     <div class="wov" id="wov">
       <div class="wcard">
-        <span class="wemoji">🏆</span>
+        <span class="wemoji"></span>
         <div class="wtitle" id="wtitle">Player 1 Wins!</div>
         <div class="wsub" id="wsub">Three in a row!</div>
         <button class="wagain" onclick="onNewGame()">Play Again</button>
@@ -267,7 +267,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div class="slabel">Move History</div>
     <div class="log" id="log"><div class="lentry">Game started — Player 1 goes first.</div></div>
     <div class="div"></div>
-    <button class="rbtn" onclick="toggleRules()">📋 How to Play</button>
+    <button class="rbtn" onclick="toggleRules()">How to Play</button>
     <div class="rpanel" id="rpanel">
       <strong>TIC</strong>Click any empty full box. Places your symbol.
       <strong>GROW</strong>Click a full box as origin (blacked-out boxes count). Then click 1 or 2 empty spaces adjacent or diagonal to it.
@@ -418,7 +418,7 @@ function showWinScreen() {
   document.getElementById('wtitle').textContent = title;
   document.getElementById('wsub').textContent   = sub;
   document.getElementById('wov').classList.add('show');
-  logWin(`🏆 Player ${curP} wins with three ${sym}s in a row!`);
+  logWin(`Player ${curP} wins with three ${sym}s in a row!`);
 }
 
 function logMove(move) {
