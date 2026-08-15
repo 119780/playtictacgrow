@@ -14,7 +14,7 @@
 }
 body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .hdr{height:52px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
-.logo{font-size:1.15rem;font-weight:700;letter-spacing:.06em}
+.logo{font-size:1.15rem;font-weight:700;letter-spacing:.06em;cursor:pointer;user-select:none}
 .logo b{color:var(--x)}.logo i{color:var(--o);font-style:normal}
 .hdr-space{flex:1}
 .turn-pill{font-size:.75rem;font-weight:600;padding:5px 13px;border-radius:20px;border:1.5px solid var(--border2);color:var(--muted);letter-spacing:.03em;transition:all .2s}
@@ -96,12 +96,16 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 @keyframes wglow{from{border-color:var(--gold);background:rgba(240,192,64,.2)}to{border-color:rgba(240,192,64,.55);background:rgba(240,192,64,.08)}}
 .wov{position:absolute;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
 .wov.show{display:flex}
-.wcard{background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:44px 52px;text-align:center;max-width:380px}
-.wemoji{font-size:3rem;margin-bottom:14px;display:block}
+.wcard{background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:40px 48px;text-align:center;max-width:380px;width:100%}
 .wtitle{font-size:2rem;font-weight:700;margin-bottom:7px}
-.wsub{color:var(--muted);font-size:.95rem;margin-bottom:28px}
-.wagain{background:var(--gold);color:#0a0900;border:none;border-radius:10px;padding:13px 38px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
-.wagain:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.wsub{color:var(--muted);font-size:.95rem;margin-bottom:24px}
+.win-btns{display:flex;flex-direction:column;gap:10px;width:100%}
+.wagain{background:var(--gold);color:#0a0900;border:none;border-radius:10px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;width:100%}
+.wagain:hover:not(:disabled){filter:brightness(1.08)}
+.wagain:disabled{opacity:.5;cursor:default;filter:none}
+.wgohome{background:rgba(255,255,255,.07);color:var(--muted);border:1.5px solid var(--border);border-radius:10px;padding:11px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;width:100%}
+.wgohome:hover{background:rgba(255,255,255,.13);color:var(--text)}
+.opp-ready{font-size:.76rem;color:var(--green);min-height:18px;margin-bottom:2px}
 .dc-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:#2a1a1a;border:1.5px solid #8b3030;border-radius:10px;padding:10px 20px;font-size:.82rem;font-weight:600;color:#e88080;z-index:200;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap}
 .dc-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 
@@ -156,13 +160,16 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 
     <!-- Choose mode -->
     <div class="lscreen active" id="ls-choose">
-      <button class="lbig local" onclick="startLocal()"> 
+      <button class="lbig local" onclick="startLocal()">
+        <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--x)">2P</div>
         <div><div class="lbig-title">Play Locally</div><div class="lbig-desc">Two players, one screen</div></div>
       </button>
       <button class="lbig host" onclick="showHostScreen()">
+        <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--green)">HOST</div>
         <div><div class="lbig-title">Host a Game</div><div class="lbig-desc">Get a code, share with your friend</div></div>
       </button>
       <button class="lbig join" onclick="showJoinScreen()">
+        <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--o)">JOIN</div>
         <div><div class="lbig-title">Join a Game</div><div class="lbig-desc">Enter a friend's room code</div></div>
       </button>
     </div>
@@ -194,23 +201,22 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         <button class="lbtn-pri" id="join-btn" onclick="doJoin()">Connect</button>
         <button class="lbtn-sec" onclick="showChooseScreen()">Back</button>
       </div>
-      <div class="l-note">Enter the code exactly as shown.</div>
+      <div class="l-note">Enter the code exactly as shown to your friend.</div>
     </div>
   </div>
 </div>
 
 <!-- ══ DISCONNECT TOAST ══ -->
-<div class="dc-toast" id="dc-toast">Opponent disconnected</div>
+<div class="dc-toast" id="dc-toast">Connection lost</div>
 
 <!-- ══ HEADER ══ -->
 <header class="hdr">
-  <span class="logo">Tic<b>Tac</b><i>Grow</i></span>
+  <span class="logo" onclick="goHome()" title="Go to dashboard">Tic<b>Tac</b><i>Grow</i></span>
   <div class="hdr-space"></div>
   <div class="conn-badge" id="conn-badge" style="display:none">
     <div class="conn-dot"></div><span id="conn-label">Online</span>
   </div>
   <div class="turn-pill xp" id="turn-pill">Player 1's Turn</div>
-  <button class="hdr-btn" onclick="onNewGame()">New Game</button>
 </header>
 
 <div class="main">
@@ -252,17 +258,30 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div id="board"></div>
     <div class="wov" id="wov">
       <div class="wcard">
-        <span class="wemoji"></span>
-        <div class="wtitle" id="wtitle">Player 1 Wins</div>
-        <div class="wsub" id="wsub">Three in a row.</div>
-        <button class="wagain" onclick="onNewGame()">Play Again</button>
+        <div class="wtitle" id="wtitle">You Win</div>
+        <div class="wsub" id="wsub">Three in a row</div>
+        <!-- Online normal end -->
+        <div class="win-btns" id="win-online" style="display:none">
+          <div class="opp-ready" id="opp-ready-msg"></div>
+          <button class="wagain" id="btn-rematch" onclick="requestRematch()">Play Again</button>
+          <button class="wgohome" onclick="goHome()">Go to Dashboard</button>
+        </div>
+        <!-- Online resign win (no rematch) -->
+        <div class="win-btns" id="win-resign" style="display:none">
+          <button class="wgohome" onclick="goHome()">Go to Dashboard</button>
+        </div>
+        <!-- Local mode -->
+        <div class="win-btns" id="win-local" style="display:none">
+          <button class="wagain" onclick="resetGame()">Play Again</button>
+          <button class="wgohome" onclick="goHome()">Go to Dashboard</button>
+        </div>
       </div>
     </div>
   </main>
 
   <aside class="side right">
     <div class="slabel">Move History</div>
-    <div class="log" id="log"><div class="lentry">Game started: Player 1 goes first.</div></div>
+    <div class="log" id="log"><div class="lentry">Game started — Player 1 goes first.</div></div>
     <div class="div"></div>
     <button class="rbtn" onclick="toggleRules()">How to Play</button>
     <div class="rpanel" id="rpanel">
@@ -277,18 +296,26 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 </div>
 
 <script>
-
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  SERVER URL                                                  ║
+// ║  Change the second line to your Render/Railway server URL.  ║
+// ╚══════════════════════════════════════════════════════════════╝
 const isLocal = ['localhost','127.0.0.1',''].includes(window.location.hostname);
 const SERVER_URL = isLocal
   ? 'ws://localhost:3000'
   : 'wss://tictacgrow.onrender.com';
 
-
+// ═══════════════════════════════════════════════════════════════
+//  NETWORK STATE
+// ═══════════════════════════════════════════════════════════════
 let ws       = null;
 let isOnline = false;
 let myRole   = null;   // 'host' | 'guest'
 let roomCode = null;
 
+// ═══════════════════════════════════════════════════════════════
+//  WEBSOCKET LAYER
+// ═══════════════════════════════════════════════════════════════
 
 function connectWS(onOpen) {
   if (ws) { try { ws.close(); } catch(e){} ws = null; }
@@ -340,7 +367,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
-      logNet('Connected. You are x: go first.');
+      logNet('Connected — you are x (P1), go first.');
       break;
 
     case 'joined':
@@ -350,7 +377,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
-      logNet('Connected. You are o: wait for opponent.');
+      logNet('Connected — you are o (P2), wait for opponent.');
       break;
 
     case 'state':
@@ -359,18 +386,38 @@ function handleServerMessage(data) {
 
     case 'reset':
       document.getElementById('wov').classList.remove('show');
-      document.getElementById('log').innerHTML = '<div class="lentry">Game reset: Player 1 goes first.</div>';
-      if (isOnline) logNet('Online: ' + (myRole==='host' ? 'You are x (P1).' : 'You are o (P2).'));
+      document.getElementById('log').innerHTML = '<div class="lentry">New game — Player 1 goes first.</div>';
+      logNet('Online — ' + (myRole==='host' ? 'you are x (P1).' : 'you are o (P2).'));
       applyServerState(data.state, null, true);
+      break;
+
+    case 'opponent-resigned':
+      over = true; phase = 'idle'; showCtrl('none');
+      ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
+      renderBoard();
+      showWinScreen(true, 'Opponent Resigned', 'You win by resignation');
+      break;
+
+    case 'rematch-status': {
+      const theyVoted = data.votes.includes(myRole==='host' ? 'guest' : 'host');
+      const iVoted    = data.votes.includes(myRole);
+      const msg = document.getElementById('opp-ready-msg');
+      if (theyVoted) { msg.textContent = 'Opponent is ready to play again'; }
+      const btn = document.getElementById('btn-rematch');
+      if (iVoted) { btn.textContent = 'Waiting for opponent…'; btn.disabled = true; }
+      break;
+    }
+
+    case 'opponent-left':
+      isOnline = false;
+      if (ws) { try { ws.close(); } catch(e){} ws = null; }
+      document.getElementById('wov').classList.remove('show');
+      showLobby();
       break;
 
     case 'error':
       if (!isOnline) { setLobbyErr(data.message); resetJoinBtn(); }
       else { setStatus('Error', data.message); updatePlayerUI(); }
-      break;
-
-    case 'opponent-disconnected':
-      onDisconnect();
       break;
   }
 }
@@ -392,22 +439,37 @@ function applyServerState(state, move, isInit) {
   renderBoard();
 }
 
-function showWinScreen() {
+function showWinScreen(isResign=false, title=null, sub=null) {
   if (document.getElementById('wov').classList.contains('show')) return;
-  const sym = curP===1 ? 'x' : 'o';
-  let title, sub;
-  if (isOnline) {
-    const iWon = (myRole==='host' && curP===1) || (myRole==='guest' && curP===2);
-    title = iWon ? 'You Win' : 'Opponent Wins';
-    sub   = iWon ? 'Three in a row.' : 'Better luck next time.';
-  } else {
-    title = `Player ${curP} (${sym}) Wins!`;
-    sub   = 'Three in a row.';
+  // Set title / sub
+  if (!title) {
+    const sym = curP===1 ? 'x' : 'o';
+    if (isOnline) {
+      const iWon = (myRole==='host'&&curP===1)||(myRole==='guest'&&curP===2);
+      title = iWon ? 'You Win' : 'Opponent Wins';
+      sub   = iWon ? 'Three in a row' : 'Better luck next time';
+    } else {
+      title = `Player ${curP} wins`;
+      sub   = 'Three in a row';
+    }
   }
   document.getElementById('wtitle').textContent = title;
-  document.getElementById('wsub').textContent   = sub;
+  document.getElementById('wsub').textContent   = sub || '';
+  // Show correct button section
+  ['win-online','win-resign','win-local'].forEach(id =>
+    document.getElementById(id).style.display = 'none');
+  if (!isOnline) {
+    document.getElementById('win-local').style.display = 'flex';
+  } else if (isResign) {
+    document.getElementById('win-resign').style.display = 'flex';
+  } else {
+    document.getElementById('win-online').style.display = 'flex';
+    document.getElementById('opp-ready-msg').textContent = '';
+    const btn = document.getElementById('btn-rematch');
+    btn.textContent = 'Play Again'; btn.disabled = false;
+  }
   document.getElementById('wov').classList.add('show');
-  logWin(`Player ${curP} wins with three ${sym}'s in a row.`);
+  if (!isResign) logWin(`Player ${curP} wins with three in a row!`);
 }
 
 function logMove(move) {
@@ -415,12 +477,12 @@ function logMove(move) {
   const sym = p===1 ? 'x' : 'o';
   const cls = p===1 ? 'lx' : 'lo';
   let text;
-  if      (move.action==='tic')  text = `Tic: placed ${sym} at (${move.x},${move.y})`;
+  if      (move.action==='tic')  text = `Tic — placed ${sym} at (${move.x},${move.y})`;
   else if (move.action==='grow') {
     const coords = move.placements.map(pl => `(${pl.x},${pl.y})`).join(', ');
-    text = `Grow from (${move.ox},${move.oy}) to ${coords}`;
+    text = `Grow from (${move.ox},${move.oy}) → ${coords}`;
   }
-  else if (move.action==='no')   text = `No: blacked out (${move.x},${move.y})`;
+  else if (move.action==='no')   text = `No — blacked out (${move.x},${move.y})`;
   else return;
   const div = document.createElement('div');
   div.className = 'lentry';
@@ -440,7 +502,9 @@ function sendOnlineMove(data) {
   renderBoard();
 }
 
-
+// ═══════════════════════════════════════════════════════════════
+//  LOBBY
+// ═══════════════════════════════════════════════════════════════
 
 function showScreen(id) {
   ['ls-choose','ls-host','ls-join'].forEach(s =>
@@ -517,18 +581,29 @@ function resetJoinBtn() {
 }
 
 function onDisconnect() {
+  // Unexpected drop (not a clean resign/leave) — just return to lobby
   if (!isOnline) return;
   isOnline = false;
   updateConnBadge();
-  showToast('⚡ Opponent disconnected');
-  over=true; phase='idle'; showCtrl('none');
-  ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
-  renderBoard();
+  showToast('Connection lost');
+  showLobby();
 }
 
-function onNewGame() {
-  if (isOnline) { sendToServer({ type:'reset' }); }
-  else          { resetGame(); }
+function goHome() {
+  if (isOnline) {
+    // Send resign or leave before closing so server notifies opponent
+    sendToServer(over ? {type:'leave'} : {type:'resign'});
+    isOnline = false; // prevent onDisconnect re-entry
+    if (ws) { if (ws._hb) clearInterval(ws._hb); try { ws.close(); } catch(e){} ws = null; }
+  }
+  document.getElementById('wov').classList.remove('show');
+  showLobby();
+}
+
+function requestRematch() {
+  sendToServer({type:'rematch-request'});
+  const btn = document.getElementById('btn-rematch');
+  btn.textContent = 'Waiting for opponent…'; btn.disabled = true;
 }
 
 function updateConnBadge(state) {
@@ -627,8 +702,8 @@ function buildCell(x,y,sz) {
     const bl=document.createElement('div'); bl.className='blk-fill'; div.appendChild(bl);
   } else if (c.symbol) {
     const s=document.createElement('div');
-    s.className='csym '+(c.symbol==='x'?'x':'o');
-    s.textContent=c.symbol; s.style.fontSize=Math.round(sz*.52)+'px';
+    s.className='csym '+(c.symbol==='X'?'x':'o');
+    s.textContent=c.symbol.toLowerCase(); s.style.fontSize=Math.round(sz*.52)+'px';
     div.appendChild(s);
   }
   if (winCells.some(w=>w.x===x&&w.y===y)) div.classList.add('won');
@@ -690,9 +765,9 @@ function doTic(x,y) {
   const c=getC(x,y);
   if (!c.hasBox||c.blackedOut||c.symbol) { setStatus('Tic','Invalid — pick an empty, non-blacked-out box.'); return; }
   if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
-  const sym=curP===1?'x':'o';
+  const sym=curP===1?'X':'O';
   setC(x,y,{symbol:sym});
-  log(`Tic — placed ${sym} at (${x},${y})`);
+  log(`Tic — placed ${sym.toLowerCase()} at (${x},${y})`);
   if (checkWin(sym)) { endGameLocal(); return; }
   endTurn();
 }
@@ -819,7 +894,8 @@ function log(text) {
   const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
 }
 function logNet(text) {
-  const div=document.createElement('div'); div.className='lentry lnet'; div.textContent=text;
+  const div=document.createElement('div'); div.className='lentry lnet';
+  div.textContent='— '+text;
   const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
 }
 function logWin(text) {
