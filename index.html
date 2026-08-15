@@ -94,9 +94,38 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .cell.h-no{cursor:pointer}.cell.h-no:hover::after{border:2px solid rgba(200,56,56,.55);background:rgba(200,56,56,.1)}
 .cell.won::after{border:3px solid var(--gold);background:rgba(240,192,64,.2);animation:wglow .75s ease infinite alternate}
 @keyframes wglow{from{border-color:var(--gold);background:rgba(240,192,64,.2)}to{border-color:rgba(240,192,64,.55);background:rgba(240,192,64,.08)}}
-.wov{position:absolute;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
+.wov{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
 .wov.show{display:flex}
 .wcard{background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:40px 48px;text-align:center;max-width:380px;width:100%}
+
+/* ── MOBILE BOTTOM BAR ── */
+.mob-bar{display:none;flex-direction:column;gap:8px;background:var(--panel);border-top:1px solid var(--border);padding:10px 12px 14px;flex-shrink:0}
+.mob-status-row{display:flex;align-items:center;gap:8px}
+.mob-turn{font-size:.78rem;font-weight:700;color:var(--text)}
+.mob-msg{font-size:.7rem;color:var(--muted);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mob-cancel-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
+.mob-cancel-btn:hover{color:var(--text);border-color:var(--border2)}
+.mob-actions{display:flex;gap:6px}
+.mob-btn{flex:1;padding:9px 4px 7px;border-radius:10px;border:1.5px solid var(--border);background:var(--panel2);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .15s}
+.mob-btn:hover:not(:disabled){border-color:var(--border2);background:#313131}
+.mob-btn.sel{border-color:var(--gold);background:rgba(240,192,64,.08)}
+.mob-btn:disabled{opacity:.3;cursor:not-allowed}
+.mob-icon{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem}
+.mob-label{font-size:.6rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.mob-btn.sel .mob-label{color:var(--gold)}
+.mob-grow-ctrl{display:none;gap:8px}
+.mob-ok{flex:2;padding:10px;border-radius:8px;border:none;background:var(--green);color:#071a0e;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit}
+.mob-ok:disabled{opacity:.4;cursor:not-allowed}
+.mob-can-grow{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit}
+@media(max-width:700px){
+  .side{display:none}
+  .mob-bar{display:flex}
+  .barea{padding:8px}
+}
+@media(max-width:480px){
+  .lcard{width:calc(100vw - 32px);padding:28px 20px}
+  .wcard{padding:32px 20px}
+}
 .wtitle{font-size:2rem;font-weight:700;margin-bottom:7px}
 .wsub{color:var(--muted);font-size:.95rem;margin-bottom:24px}
 .win-btns{display:flex;flex-direction:column;gap:10px;width:100%}
@@ -295,7 +324,29 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   </aside>
 </div>
 
-<script>
+<!-- ── MOBILE BOTTOM BAR ── -->
+<div class="mob-bar" id="mob-bar">
+  <div class="mob-status-row">
+    <span class="mob-turn" id="mob-turn">Player 1's Turn</span>
+    <span class="mob-msg" id="mob-msg">Select an action</span>
+    <button class="mob-cancel-btn" id="mob-cancel-btn" onclick="cancelAction()" style="display:none">Cancel</button>
+  </div>
+  <div class="mob-actions" id="mob-actions">
+    <button class="mob-btn tic" id="mob-btn-tic" onclick="selectAction('tic')">
+      <span class="mob-icon" style="color:var(--x)">x</span><span class="mob-label">Tic</span>
+    </button>
+    <button class="mob-btn grow" id="mob-btn-grow" onclick="selectAction('grow')">
+      <span class="mob-icon" style="color:var(--green)">+</span><span class="mob-label">Grow</span>
+    </button>
+    <button class="mob-btn no" id="mob-btn-no" onclick="selectAction('no')">
+      <span class="mob-icon" style="color:var(--muted)">■</span><span class="mob-label">No</span>
+    </button>
+  </div>
+  <div class="mob-grow-ctrl" id="mob-grow-ctrl">
+    <button class="mob-ok" id="mob-btn-ok" onclick="confirmGrow()" disabled>Confirm</button>
+    <button class="mob-can-grow" onclick="cancelAction()">Cancel</button>
+  </div>
+</div>
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  SERVER URL                                                  ║
 // ║  Change the second line to your Render/Railway server URL.  ║
@@ -303,7 +354,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 const isLocal = ['localhost','127.0.0.1',''].includes(window.location.hostname);
 const SERVER_URL = isLocal
   ? 'ws://localhost:3000'
-  : 'wss://tictacgrow.onrender.com';
+  : 'wss://YOUR-APP.onrender.com';   // ← REPLACE THIS
 
 // ═══════════════════════════════════════════════════════════════
 //  NETWORK STATE
@@ -556,6 +607,13 @@ function hideLobby() {
   setTimeout(() => lb.style.display='none', 350);
 }
 
+function showLobby() {
+  const lb = document.getElementById('lobby');
+  lb.style.display = 'flex';
+  requestAnimationFrame(() => lb.classList.remove('hidden'));
+  showChooseScreen();
+}
+
 function doJoin() {
   const code = document.getElementById('join-input').value.trim().toUpperCase();
   if (code.length !== 6) { setLobbyErr('Code must be exactly 6 characters.'); return; }
@@ -728,8 +786,12 @@ function selectAction(a) {
   if (over) return;
   if (isOnline && !isMyTurn()) return;
   cancelAction(false);
-  ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).classList.remove('sel'));
+  ['tic','grow','no'].forEach(id=>{
+    document.getElementById('btn-'+id).classList.remove('sel');
+    const mb=document.getElementById('mob-btn-'+id);if(mb)mb.classList.remove('sel');
+  });
   document.getElementById('btn-'+a).classList.add('sel');
+  const mba=document.getElementById('mob-btn-'+a);if(mba)mba.classList.add('sel');
   if      (a==='tic')  { phase='tic'; setStatus('Tic','Click an empty box.'); showCtrl('cancel'); }
   else if (a==='grow') { phase='grow_ori'; gOrigin=null; gSel=[]; setStatus('Grow','Click a full box as the grow origin.'); showCtrl('none'); }
   else if (a==='no')   { phase='no'; setStatus('No','Click any space to black it out.'); showCtrl('cancel'); }
@@ -738,7 +800,10 @@ function selectAction(a) {
 
 function cancelAction(doRender=true) {
   phase='idle'; gOrigin=null; gSel=[];
-  ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).classList.remove('sel'));
+  ['tic','grow','no'].forEach(id=>{
+    document.getElementById('btn-'+id).classList.remove('sel');
+    const mb=document.getElementById('mob-btn-'+id);if(mb)mb.classList.remove('sel');
+  });
   showCtrl('none');
   if (isOnline&&!isMyTurn()) setStatus('Waiting','Opponent is making their move…');
   else setStatus('Your Turn','Select an action above.');
@@ -794,6 +859,8 @@ function updateGrowUI() {
   const n=gSel.length;
   const btn=document.getElementById('btn-ok');
   btn.textContent=`Confirm (${n} box${n===1?'':'es'})`; btn.disabled=n===0;
+  const mb=document.getElementById('mob-btn-ok');
+  if(mb){mb.textContent=n>0?`Confirm (${n})`:'Confirm';mb.disabled=n===0;}
   setStatus('Grow', n===0?'Click spaces adjacent/diagonal to the origin.':`${n} selected. Add another or confirm.`);
 }
 
@@ -858,19 +925,25 @@ function updatePlayerUI() {
   document.getElementById('d1').style.display=curP===1?'block':'none';
   document.getElementById('d2').style.display=curP===2?'block':'none';
   const pill=document.getElementById('turn-pill');
+  let pillText='';
   if (isOnline) {
     const mine=isMyTurn();
     pill.className='turn-pill '+(curP===1?'xp':'op');
-    pill.textContent=mine?'Your Turn':"Opponent's Turn";
+    pillText=mine?'Your Turn':"Opponent's Turn";
+    pill.textContent=pillText;
     ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=!mine);
     if (!mine) setStatus('Waiting','Opponent is making their move…');
     else if (phase==='idle') setStatus('Your Turn','Select an action above.');
   } else {
     pill.className='turn-pill '+(curP===1?'xp':'op');
-    pill.textContent=`Player ${curP}'s Turn`;
+    pillText=`Player ${curP}'s Turn`;
+    pill.textContent=pillText;
     ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=false);
     if (phase==='idle') setStatus('Your Turn','Select an action above.');
   }
+  // sync mobile bar
+  ['tic','grow','no'].forEach(id=>{const mb=document.getElementById('mob-btn-'+id);if(mb)mb.disabled=document.getElementById('btn-'+id).disabled;});
+  const mt=document.getElementById('mob-turn');if(mt)mt.textContent=pillText;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -879,12 +952,22 @@ function updatePlayerUI() {
 function setStatus(title,msg) {
   document.getElementById('stitle').textContent=title;
   document.getElementById('smsg').textContent=msg;
+  const mm=document.getElementById('mob-msg'); if(mm) mm.textContent=msg;
 }
 
 function showCtrl(mode) {
   document.getElementById('ctrl-grow').style.display=mode==='grow'?'block':'none';
   document.getElementById('ctrl-cancel').style.display=mode==='cancel'?'block':'none';
   if (mode==='grow') { const b=document.getElementById('btn-ok'); b.textContent='Confirm (0 boxes)'; b.disabled=true; }
+  // mobile: swap action row ↔ grow controls
+  const ma=document.getElementById('mob-actions');
+  const mg=document.getElementById('mob-grow-ctrl');
+  const mc=document.getElementById('mob-cancel-btn');
+  const mb=document.getElementById('mob-btn-ok');
+  if(ma) ma.style.display=mode==='grow'?'none':'flex';
+  if(mg) mg.style.display=mode==='grow'?'flex':'none';
+  if(mc) mc.style.display=(mode==='cancel')?'block':'none';
+  if(mb&&mode==='grow'){mb.textContent='Confirm';mb.disabled=true;}
 }
 
 function log(text) {
