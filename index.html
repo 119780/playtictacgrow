@@ -347,6 +347,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <button class="mob-can-grow" onclick="cancelAction()">Cancel</button>
   </div>
 </div>
+<script>
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  SERVER URL                                                  ║
 // ║  Change the second line to your Render/Railway server URL.  ║
@@ -354,7 +355,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 const isLocal = ['localhost','127.0.0.1',''].includes(window.location.hostname);
 const SERVER_URL = isLocal
   ? 'ws://localhost:3000'
-  : 'wss://tictacgrow.onrender.com';
+  : 'wss://YOUR-APP.onrender.com';   // ← REPLACE THIS
 
 // ═══════════════════════════════════════════════════════════════
 //  NETWORK STATE
