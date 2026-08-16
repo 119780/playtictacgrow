@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>TicTacGrow</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
@@ -10,9 +10,9 @@
 :root{
   --bg:#191919;--panel:#212121;--panel2:#2a2a2a;--border:#363636;--border2:#484848;
   --x:#c83838;--o:#2090b0;--gold:#f0c040;--green:#38c870;--text:#d6d2cc;--muted:#747070;
-  --box-a:#f2ede2;--box-b:#e3ddd1;--grid-a:#2d2d2d;--grid-b:#242424;
+  --box-b:#dbceac;--box-a:#cbb792;--grid-b:#2d2d2d;--grid-a:#242424;
 }
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .hdr{height:52px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
 .logo{font-size:1.15rem;font-weight:700;letter-spacing:.06em;cursor:pointer;user-select:none}
 .logo b{color:var(--x)}.logo i{color:var(--o);font-style:normal}
@@ -77,11 +77,11 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .rpanel strong{color:var(--text);display:block;margin-top:7px;margin-bottom:1px;font-size:.76rem}
 .rpanel strong:first-child{margin-top:0}
 .barea{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;background:var(--bg);position:relative}
-#board{display:inline-grid;gap:1px;background:#141414;padding:1px}
+#board{display:inline-grid;gap:0px;background:#141414;padding:1px}
 .cell{position:relative;border-radius:0;display:flex;align-items:center;justify-content:center;user-select:none;cursor:default;overflow:hidden}
 .csym{font-family:'JetBrains Mono',monospace;font-weight:700;line-height:1;pointer-events:none;position:relative;z-index:2}
 .csym.x{color:var(--x)}.csym.o{color:var(--o)}
-.blk-fill{position:absolute;inset:4px;background:#060608;z-index:1;pointer-events:none}
+.blk-fill{position:absolute;inset:3px;background-image:url('scribble.png');background-size:contain;background-repeat:no-repeat;background-position:center;z-index:1;pointer-events:none}
 .cell::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;border:0px solid transparent;background:transparent;transition:border-color .1s,background .1s}
 .cell.h-tic{cursor:pointer}.cell.h-tic::after{border:2px solid rgba(200,56,56,.45);background:rgba(200,56,56,.07)}
 .cell.h-tic:hover::after{border-color:var(--x);background:rgba(200,56,56,.18)}
@@ -99,7 +99,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .wcard{background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:40px 48px;text-align:center;max-width:380px;width:100%}
 
 /* ── MOBILE BOTTOM BAR ── */
-.mob-bar{display:none;flex-direction:column;gap:8px;background:var(--panel);border-top:1px solid var(--border);padding:10px 12px 14px;flex-shrink:0}
+.mob-bar{display:none;flex-direction:column;gap:8px;background:var(--panel);border-top:1px solid var(--border);padding:10px 12px calc(14px + env(safe-area-inset-bottom));flex-shrink:0}
 .mob-status-row{display:flex;align-items:center;gap:8px}
 .mob-turn{font-size:.78rem;font-weight:700;color:var(--text)}
 .mob-msg{font-size:.7rem;color:var(--muted);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -355,7 +355,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 const isLocal = ['localhost','127.0.0.1',''].includes(window.location.hostname);
 const SERVER_URL = isLocal
   ? 'ws://localhost:3000'
-  : 'wss://tictacgrow.onrender.com';   // ← REPLACE THIS
+  : 'wss://tictacgrow.onrender.com';
 
 // ═══════════════════════════════════════════════════════════════
 //  NETWORK STATE
@@ -460,12 +460,16 @@ function handleServerMessage(data) {
       break;
     }
 
-    case 'opponent-left':
-      isOnline = false;
-      if (ws) { try { ws.close(); } catch(e){} ws = null; }
-      document.getElementById('wov').classList.remove('show');
-      showLobby();
+    case 'opponent-left': {
+      // goHome() only ever sends 'leave' once a game has ended, so this
+      // always arrives post-game — just grey out the rematch option
+      // instead of kicking the remaining player back to the lobby.
+      const btn = document.getElementById('btn-rematch');
+      if (btn) { btn.disabled = true; btn.textContent = 'Opponent Left'; }
+      const msg = document.getElementById('opp-ready-msg');
+      if (msg) msg.textContent = 'Opponent has left the game.';
       break;
+    }
 
     case 'error':
       if (!isOnline) { setLobbyErr(data.message); resetJoinBtn(); }
@@ -1011,6 +1015,34 @@ function resetGame() {
 }
 
 window.addEventListener('resize', renderBoard);
+
+// ═══════════════════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+//  1/2/3 → Tic/Grow/No · Enter → confirm a pending Grow
+// ═══════════════════════════════════════════════════════════════
+function lobbyVisible() {
+  const lb = document.getElementById('lobby');
+  return lb.style.display !== 'none';
+}
+
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return; // don't hijack the join-code field
+  if (lobbyVisible()) return;
+  if (over) return;
+  if (isOnline && !isMyTurn()) return;
+
+  if (e.key === '1') { e.preventDefault(); selectAction('tic'); }
+  else if (e.key === '2') { e.preventDefault(); selectAction('grow'); }
+  else if (e.key === '3') { e.preventDefault(); selectAction('no'); }
+  else if (e.key === 'Enter') {
+    if (phase === 'grow_pl') {
+      const btn = document.getElementById('btn-ok');
+      if (btn && !btn.disabled) { e.preventDefault(); confirmGrow(); }
+    }
+  }
+});
+
 resetGame();
 </script>
 </body>
