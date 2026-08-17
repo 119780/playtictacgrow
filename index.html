@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>TicTacGrow</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -80,8 +81,9 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 #board{display:inline-grid;gap:0px;background:#141414;padding:1px}
 .cell{position:relative;border-radius:0;display:flex;align-items:center;justify-content:center;user-select:none;cursor:default;overflow:hidden}
 .csym{font-family:'JetBrains Mono',monospace;font-weight:700;line-height:1;pointer-events:none;position:relative;z-index:2}
+.csym.dimmed{opacity:.45;z-index:1}
 .csym.x{color:var(--x)}.csym.o{color:var(--o)}
-.blk-fill{position:absolute;inset:3px;background-image:url('scribble.png');background-size:contain;background-repeat:no-repeat;background-position:center;z-index:1;pointer-events:none}
+.blk-fill{position:absolute;inset:3px;background-image:url('scribble.png');background-size:contain;background-repeat:no-repeat;background-position:center;z-index:2;pointer-events:none}
 .cell::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;border:0px solid transparent;background:transparent;transition:border-color .1s,background .1s}
 .cell.h-tic{cursor:pointer}.cell.h-tic::after{border:2px solid rgba(200,56,56,.45);background:rgba(200,56,56,.07)}
 .cell.h-tic:hover::after{border-color:var(--x);background:rgba(200,56,56,.18)}
@@ -141,7 +143,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 /* ── LOBBY ── */
 .lobby{position:fixed;inset:0;z-index:100;background:rgba(15,15,15,.96);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;transition:opacity .3s}
 .lobby.hidden{opacity:0;pointer-events:none}
-.lcard{background:var(--panel);border:1.5px solid var(--border);border-radius:18px;padding:40px 44px;width:390px;display:flex;flex-direction:column}
+.lcard{background:var(--panel);border:1.5px solid var(--border);border-radius:18px;padding:40px 44px;width:390px;max-height:90vh;max-height:90dvh;overflow-y:auto;display:flex;flex-direction:column}
 .lcard-logo{font-size:1.6rem;font-weight:700;letter-spacing:.05em;margin-bottom:6px}
 .lcard-logo b{color:var(--x)}.lcard-logo i{color:var(--o);font-style:normal}
 .lcard-sub{font-size:.82rem;color:var(--muted);margin-bottom:28px}
@@ -174,6 +176,64 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .lbtn-sec{padding:10px 14px;border-radius:9px;border:1.5px solid var(--border);background:none;color:var(--muted);font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .lbtn-sec:hover{border-color:var(--border2);color:var(--text)}
 .l-note{font-size:.68rem;color:var(--muted);text-align:center;margin-top:4px;line-height:1.5}
+
+/* ── AUTH / DASHBOARD BLOCK ── */
+.auth-block{margin-bottom:6px}
+.auth-signin{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--panel2);color:var(--text);font-size:.83rem;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.auth-signin:hover{border-color:var(--border2);background:#313131}
+.g-icon{width:18px;height:18px;flex-shrink:0}
+.auth-caption{font-size:.68rem;color:var(--muted);text-align:center;margin-top:6px}
+
+.auth-profile{
+  display:flex;align-items:center;gap:10px;
+  background:var(--panel2);border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 12px;margin-bottom:8px;
+}
+.auth-avatar{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:var(--gold);object-fit:cover;
+}
+.auth-avatar-fallback{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:var(--gold);color:#0a0900;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:.9rem;
+}
+.auth-name-block{flex:1;min-width:0}
+.auth-name{font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.auth-signout{font-size:.68rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;text-decoration:underline;text-underline-offset:2px}
+.auth-signout:hover{color:var(--text)}
+
+.stats-row{display:flex;gap:6px;margin-bottom:10px}
+.stat-box{
+  flex:1;background:var(--panel2);border:1.5px solid var(--border);
+  border-radius:8px;padding:8px 4px;text-align:center;
+}
+.stat-val{font-size:1.05rem;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace}
+.stat-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+
+/* ── GUEST NUDGE ── */
+.guest-nudge{
+  display:none;flex-direction:column;gap:8px;
+  background:rgba(240,192,64,.07);border:1.5px solid rgba(240,192,64,.35);
+  border-radius:10px;padding:12px 14px;margin-bottom:10px;
+}
+.guest-nudge-text{font-size:.78rem;color:var(--text);line-height:1.4}
+.guest-nudge-row{display:flex;gap:8px}
+.guest-nudge-signin{
+  flex:1;padding:8px;border-radius:8px;border:none;background:var(--gold);
+  color:#0a0900;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.guest-nudge-dismiss{
+  padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);
+  background:none;color:var(--muted);font-size:.78rem;font-weight:600;
+  cursor:pointer;font-family:inherit;
+}
+.guest-nudge-dismiss:hover{color:var(--text);border-color:var(--border2)}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
@@ -189,6 +249,42 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 
     <!-- Choose mode -->
     <div class="lscreen active" id="ls-choose">
+
+      <!-- Guest nudge (shown after a few guest games) -->
+      <div class="guest-nudge" id="guest-nudge">
+        <div class="guest-nudge-text">Enjoying TicTacGrow? Sign in with Google to save your stats and match history.</div>
+        <div class="guest-nudge-row">
+          <button class="guest-nudge-signin" onclick="signInGoogle()">Sign in with Google</button>
+          <button class="guest-nudge-dismiss" onclick="dismissGuestNudge()">Maybe later</button>
+        </div>
+      </div>
+
+      <!-- Signed out -->
+      <div class="auth-block" id="auth-guest">
+        <button class="auth-signin" onclick="signInGoogle()">
+          <svg class="g-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3c-7.6 0-14.1 4.3-17.4 10.6z"/><path fill="#4CAF50" d="M24 45c5.4 0 10.3-2.1 14-5.5l-6.5-5.5C29.4 35.9 26.8 37 24 37c-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.7 40.8 16.3 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.4 4.4-4.4 5.9l6.5 5.5C41.5 36.5 45 30.9 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
+          Sign in with Google
+        </button>
+        <div class="auth-caption">Guest play needs no sign-in — this just saves your stats</div>
+      </div>
+
+      <!-- Signed in -->
+      <div class="auth-block" id="auth-signedin" style="display:none">
+        <div class="auth-profile">
+          <img class="auth-avatar" id="auth-avatar" style="display:none">
+          <div class="auth-avatar-fallback" id="auth-avatar-fallback">?</div>
+          <div class="auth-name-block">
+            <div class="auth-name" id="auth-name">Player</div>
+            <button class="auth-signout" onclick="signOutUser()">Sign out</button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-losses">0</div><div class="stat-lbl">Losses</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+        </div>
+      </div>
+
       <button class="lbig local" onclick="startLocal()">
         <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--x)">2P</div>
         <div><div class="lbig-title">Play Locally</div><div class="lbig-desc">Two players, one screen</div></div>
@@ -357,6 +453,104 @@ const SERVER_URL = isLocal
   ? 'ws://localhost:3000'
   : 'wss://tictacgrow.onrender.com';
 
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  SUPABASE CONFIG                                             ║
+// ║  Both values below are public-safe (like a Firebase config)  ║
+// ║  — fill in your project's URL and anon key from Supabase.    ║
+// ╚══════════════════════════════════════════════════════════════╝
+const SUPABASE_URL      = 'https://vdaitbnkhntjubfoiand.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkYWl0Ym5raG50anViZm9pYW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTU4MTEsImV4cCI6MjEwMjQ5MTgxMX0.mPmmLAqidC1G1mqzs7qxJoXGCOpFavD7daWMN1Oth3U';
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH — Supabase Google OAuth (optional; guests work without it)
+// ═══════════════════════════════════════════════════════════════
+let supa          = null;
+let currentUser   = null; // {id, name, avatar} or null
+let currentSession = null;
+
+function initAuth() {
+  if (!window.supabase || SUPABASE_URL.includes('YOUR-PROJECT')) {
+    console.log('Supabase not configured — running guest-only.');
+    return;
+  }
+  supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supa.auth.getSession().then(({data}) => handleAuthChange(data.session));
+  supa.auth.onAuthStateChange((_event, session) => handleAuthChange(session));
+}
+
+function handleAuthChange(session) {
+  currentSession = session;
+  currentUser = session?.user ? {
+    id:     session.user.id,
+    name:   session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email || 'Player',
+    avatar: session.user.user_metadata?.avatar_url || null,
+  } : null;
+  renderAuthUI();
+}
+
+function renderAuthUI() {
+  const guestBlock  = document.getElementById('auth-guest');
+  const signedBlock = document.getElementById('auth-signedin');
+  if (!guestBlock) return; // lobby not in DOM yet
+  if (currentUser) {
+    guestBlock.style.display  = 'none';
+    signedBlock.style.display = 'block';
+    document.getElementById('auth-name').textContent = currentUser.name;
+    const av = document.getElementById('auth-avatar');
+    const fb = document.getElementById('auth-avatar-fallback');
+    if (currentUser.avatar) {
+      av.src = currentUser.avatar; av.style.display = 'block'; fb.style.display = 'none';
+    } else {
+      av.style.display = 'none'; fb.style.display = 'flex';
+      fb.textContent = (currentUser.name || '?').charAt(0).toUpperCase();
+    }
+    loadStats();
+    // Being signed in resolves the whole point of the nudge — hide it.
+    document.getElementById('guest-nudge').style.display = 'none';
+  } else {
+    guestBlock.style.display  = 'flex';
+    signedBlock.style.display = 'none';
+  }
+}
+
+async function loadStats() {
+  if (!supa || !currentUser) return;
+  try {
+    const { data } = await supa.from('stats').select('*').eq('user_id', currentUser.id).maybeSingle();
+    document.getElementById('stat-wins').textContent   = data?.wins   || 0;
+    document.getElementById('stat-losses').textContent = data?.losses|| 0;
+    document.getElementById('stat-streak').textContent = data?.current_streak || 0;
+  } catch (e) { console.warn('Stats load failed:', e.message); }
+}
+
+function signInGoogle() {
+  if (!supa) { alert('Sign-in is not configured yet.'); return; }
+  const redirectTo = window.location.href.split('#')[0].split('?')[0];
+  supa.auth.signInWithOAuth({ provider:'google', options:{ redirectTo } });
+}
+
+function signOutUser() {
+  if (supa) supa.auth.signOut();
+}
+
+// ── Guest nudge — after a few online games, suggest signing in ──
+const GUEST_NUDGE_THRESHOLD = 3;
+
+function bumpGuestGameCount() {
+  if (currentUser) return; // only relevant for guests
+  const n = parseInt(sessionStorage.getItem('ttg_guest_games') || '0', 10) + 1;
+  sessionStorage.setItem('ttg_guest_games', String(n));
+  if (n >= GUEST_NUDGE_THRESHOLD && !sessionStorage.getItem('ttg_nudge_dismissed')) {
+    const el = document.getElementById('guest-nudge');
+    if (el) el.style.display = 'flex';
+  }
+}
+
+function dismissGuestNudge() {
+  document.getElementById('guest-nudge').style.display = 'none';
+  sessionStorage.setItem('ttg_nudge_dismissed', '1');
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  NETWORK STATE
 // ═══════════════════════════════════════════════════════════════
@@ -415,7 +609,7 @@ function handleServerMessage(data) {
     case 'opponent-joined':
       myRole = 'host'; isOnline = true;
       document.getElementById('p1name').textContent = 'You';
-      document.getElementById('p2name').textContent = 'Opponent';
+      document.getElementById('p2name').textContent = data.guestName || 'Opponent';
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
@@ -424,7 +618,7 @@ function handleServerMessage(data) {
 
     case 'joined':
       myRole = 'guest'; isOnline = true;
-      document.getElementById('p1name').textContent = 'Opponent';
+      document.getElementById('p1name').textContent = data.hostName || 'Opponent';
       document.getElementById('p2name').textContent = 'You';
       updateConnBadge('online');
       hideLobby();
@@ -497,6 +691,7 @@ function applyServerState(state, move, isInit) {
 
 function showWinScreen(isResign=false, title=null, sub=null) {
   if (document.getElementById('wov').classList.contains('show')) return;
+  if (isOnline) bumpGuestGameCount();
   // Set title / sub
   if (!title) {
     const sym = curP===1 ? 'x' : 'o';
@@ -582,7 +777,7 @@ function showHostScreen() {
   document.getElementById('copy-btn').classList.remove('copied');
   document.getElementById('wait-text').textContent = 'Connecting to server…';
   updateConnBadge('waiting');
-  connectWS(() => sendToServer({ type:'create' }));
+  connectWS(() => sendToServer({ type:'create', token: currentSession?.access_token || null }));
 }
 
 function showJoinScreen() {
@@ -625,7 +820,7 @@ function doJoin() {
   setLobbyErr('');
   const btn = document.getElementById('join-btn');
   btn.disabled=true; btn.textContent='Connecting…';
-  connectWS(() => sendToServer({ type:'join', code }));
+  connectWS(() => sendToServer({ type:'join', code, token: currentSession?.access_token || null }));
 }
 
 function copyCode() {
@@ -762,6 +957,12 @@ function buildCell(x,y,sz) {
   else          { div.classList.add('no-box');  div.style.background=even?'var(--grid-a)':'var(--grid-b)'; }
   if (c.blackedOut) {
     div.classList.add('blk');
+    if (c.symbol) {
+      const s=document.createElement('div');
+      s.className='csym dimmed '+(c.symbol==='X'?'x':'o');
+      s.textContent=c.symbol.toLowerCase(); s.style.fontSize=Math.round(sz*.52)+'px';
+      div.appendChild(s);
+    }
     const bl=document.createElement('div'); bl.className='blk-fill'; div.appendChild(bl);
   } else if (c.symbol) {
     const s=document.createElement('div');
@@ -883,7 +1084,10 @@ function doNo(x,y) {
   if (!canNo(x,y)) { setStatus('No','Cannot black out — adjacent to another blacked-out space.'); return; }
   const hadSym=getC(x,y).symbol||'';
   if (isOnline) { sendOnlineMove({action:'no',x,y}); return; }
-  setC(x,y,{blackedOut:true,symbol:null});
+  // Symbol is kept on record (not nulled) — checkWin/canGrow/canNo all key off
+  // `blackedOut`, not symbol presence, so it stays functionally "not there"
+  // while still being visible, dimmed, underneath the scribble.
+  setC(x,y,{blackedOut:true});
   log(`No — blacked out (${x},${y})${hadSym?' [had '+hadSym+']':''}`);
   endTurn();
 }
@@ -1043,6 +1247,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
+initAuth();
 resetGame();
 </script>
 </body>
