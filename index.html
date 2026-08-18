@@ -385,8 +385,6 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
           </button>
           <button class="dash-nav-btn" onclick="openSettings()">Settings</button>
         </div>
-        <div class="friends-subhead" id="recent-matches-head" style="display:none">Recent Matches</div>
-        <div id="recent-matches-list" class="friends-list"></div>
       </div>
 
       <button class="lbig local" onclick="startLocal()">
@@ -401,10 +399,16 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--o)">JOIN</div>
         <div><div class="lbig-title">Join a Game</div><div class="lbig-desc">Enter a friend's room code</div></div>
       </button>
+
+      <div id="recent-matches-block" style="display:none">
+        <div class="friends-subhead" id="recent-matches-head">Recent Matches</div>
+        <div id="recent-matches-list" class="friends-list"></div>
+      </div>
     </div>
 
     <!-- Hosting -->
     <div class="lscreen" id="ls-host-setup">
+      <div class="dash-h2" id="host-setup-title" style="display:none">Invite to Play</div>
       <div class="ranked-toggle-row" id="ranked-toggle-row">
         <div class="ranked-toggle-text">
           <div class="ranked-toggle-title">Ranked Match</div>
@@ -413,7 +417,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         <button class="toggle-switch" id="ranked-toggle" onclick="toggleRanked()" disabled></button>
       </div>
       <div class="l-action-row">
-        <button class="lbtn-pri" onclick="startHosting()">Create Room</button>
+        <button class="lbtn-pri" id="host-setup-btn" onclick="startHosting()">Create Room</button>
         <button class="lbtn-sec" onclick="showChooseScreen()">Back</button>
       </div>
       <div class="l-note">Ranked matches will factor into a future ladder ranking — not scored yet, just tagged.</div>
@@ -693,6 +697,7 @@ function renderAuthUI() {
   } else {
     guestBlock.style.display  = 'flex';
     signedBlock.style.display = 'none';
+    document.getElementById('recent-matches-block').style.display = 'none';
   }
 }
 
@@ -709,8 +714,8 @@ async function loadStats() {
 // ── Recent matches — dashboard history strip ──
 async function loadRecentMatches() {
   if (!supa || !currentUser) return;
+  const blockEl = document.getElementById('recent-matches-block');
   const listEl = document.getElementById('recent-matches-list');
-  const headEl = document.getElementById('recent-matches-head');
   try {
     const { data } = await supa
       .from('matches')
@@ -718,8 +723,8 @@ async function loadRecentMatches() {
       .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`)
       .order('created_at', { ascending: false })
       .limit(5);
-    if (!data || data.length === 0) { headEl.style.display='none'; listEl.innerHTML=''; return; }
-    headEl.style.display = 'block';
+    if (!data || data.length === 0) { blockEl.style.display='none'; listEl.innerHTML=''; return; }
+    blockEl.style.display = 'block';
     listEl.innerHTML = data.map(m => {
       const won = m.winner_id === currentUser.id;
       const iAmP1 = m.player1_id === currentUser.id;
@@ -745,9 +750,18 @@ async function loadRank() {
   const el = document.getElementById('stat-rank');
   if (!el) return;
   try {
-    const { data } = await supa.from('stats').select('user_id, elo_rating').order('elo_rating', { ascending:false });
+    // Pull created_at via the profiles relationship so ties (e.g. everyone
+    // still sitting at the default 1200) have a deterministic tiebreak —
+    // older accounts rank ahead of newer ones, not the other way round.
+    const { data } = await supa.from('stats').select('user_id, elo_rating, profiles:user_id(created_at)');
     if (!data || data.length === 0) { el.textContent = '—'; return; }
-    const idx = data.findIndex(r => r.user_id === currentUser.id);
+    const sorted = data.slice().sort((a, b) => {
+      if (b.elo_rating !== a.elo_rating) return b.elo_rating - a.elo_rating;
+      const at = a.profiles?.created_at ? new Date(a.profiles.created_at).getTime() : Infinity;
+      const bt = b.profiles?.created_at ? new Date(b.profiles.created_at).getTime() : Infinity;
+      return at - bt; // older (smaller timestamp) sorts first on a tie
+    });
+    const idx = sorted.findIndex(r => r.user_id === currentUser.id);
     el.textContent = idx === -1 ? '—' : (idx + 1);
   } catch (e) { console.warn('Rank load failed:', e.message); }
 }
@@ -878,10 +892,11 @@ async function refreshFriendBadge() {
 }
 
 // ── Invite a friend directly to a game (skips manual code sharing) ──
+// Goes through the same ranked/casual setup screen as regular hosting,
+// so ranked play is available for friend games too.
 function inviteFriend(friendId, friendName) {
   pendingInviteTarget = { id: friendId, name: friendName };
-  wantsRanked = false;
-  startHosting();
+  prepareHostSetupScreen();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1186,7 +1201,7 @@ function showScreen(id) {
 
 function showChooseScreen() {
   if (ws) { try { ws.close(); } catch(e){} ws=null; }
-  isOnline=false; myRole=null; roomCode=null;
+  isOnline=false; myRole=null; roomCode=null; pendingInviteTarget=null;
   updateConnBadge();
   showScreen('ls-choose');
   setLobbyErr('');
@@ -1196,10 +1211,12 @@ function showChooseScreen() {
 let wantsRanked = false;
 let pendingInviteTarget = null; // {id, name} — set when hosting via a friend invite
 
-function showHostScreen() {
+function prepareHostSetupScreen() {
   wantsRanked = false;
   const toggle = document.getElementById('ranked-toggle');
   const desc   = document.getElementById('ranked-toggle-desc');
+  const title  = document.getElementById('host-setup-title');
+  const btn    = document.getElementById('host-setup-btn');
   toggle.classList.remove('on');
   if (currentUser) {
     toggle.disabled = false;
@@ -1208,7 +1225,20 @@ function showHostScreen() {
     toggle.disabled = true;
     desc.textContent = 'Sign in to enable ranked play';
   }
+  if (pendingInviteTarget) {
+    title.style.display = 'block';
+    title.textContent = `Invite ${pendingInviteTarget.name}`;
+    btn.textContent = 'Send Invite';
+  } else {
+    title.style.display = 'none';
+    btn.textContent = 'Create Room';
+  }
   showScreen('ls-host-setup');
+}
+
+function showHostScreen() {
+  pendingInviteTarget = null; // plain hosting — not a friend invite
+  prepareHostSetupScreen();
 }
 
 function toggleRanked() {
@@ -1260,15 +1290,20 @@ async function saveDisplayName() {
   if (!supa || !currentUser) return;
   const name = document.getElementById('settings-name-input').value.trim();
   const msg = document.getElementById('settings-msg');
+  msg.classList.remove('err');
   if (!name) { msg.textContent = 'Name cannot be empty.'; msg.classList.add('err'); return; }
   try {
     const { error } = await supa.from('profiles').update({ display_name: name }).eq('id', currentUser.id);
     if (error) throw error;
     currentUser.name = name;
     document.getElementById('auth-name').textContent = name;
-    msg.textContent = 'Saved.'; msg.classList.remove('err');
+    msg.textContent = 'Saved.';
   } catch (e) {
-    msg.textContent = 'Could not save — try again.'; msg.classList.add('err');
+    console.error('saveDisplayName failed:', e);
+    // Surface the real reason — a permissions/RLS error looks different
+    // from a network error, and both are useful to see while debugging.
+    msg.textContent = e.message ? `Could not save: ${e.message}` : 'Could not save — try again.';
+    msg.classList.add('err');
   }
 }
 
