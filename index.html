@@ -127,6 +127,10 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 @media(max-width:480px){
   .lcard{width:calc(100vw - 32px);padding:28px 20px}
   .wcard{padding:32px 20px}
+  .stats-row{gap:4px}
+  .stat-box{padding:7px 2px}
+  .stat-val{font-size:.9rem}
+  .stat-lbl{font-size:.54rem}
 }
 .wtitle{font-size:2rem;font-weight:700;margin-bottom:7px}
 .wsub{color:var(--muted);font-size:.95rem;margin-bottom:24px}
@@ -372,6 +376,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
           <div class="stat-box"><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
           <div class="stat-box"><div class="stat-val" id="stat-losses">0</div><div class="stat-lbl">Losses</div></div>
           <div class="stat-box"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-rank">—</div><div class="stat-lbl">ELO</div></div>
         </div>
         <div class="dash-nav-row">
           <button class="dash-nav-btn" onclick="openFriends()">
@@ -629,8 +634,8 @@ const SERVER_URL = isLocal
 // ║  Both values below are public-safe (like a Firebase config)  ║
 // ║  — fill in your project's URL and anon key from Supabase.    ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SUPABASE_URL      = 'https://vdaitbnkhntjubfoiand.supabase.co';   // ← REPLACE THIS
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkYWl0Ym5raG50anViZm9pYW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTU4MTEsImV4cCI6MjEwMjQ5MTgxMX0.mPmmLAqidC1G1mqzs7qxJoXGCOpFavD7daWMN1Oth3U';                       // ← REPLACE THIS
+const SUPABASE_URL      = 'https://vdaitbnkhntjubfoiand.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkYWl0Ym5raG50anViZm9pYW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTU4MTEsImV4cCI6MjEwMjQ5MTgxMX0.mPmmLAqidC1G1mqzs7qxJoXGCOpFavD7daWMN1Oth3U';
 
 // ═══════════════════════════════════════════════════════════════
 //  AUTH — Supabase Google OAuth (optional; guests work without it)
@@ -681,6 +686,7 @@ function renderAuthUI() {
     loadStats();
     loadRecentMatches();
     loadFriendCode();
+    loadRank();
     refreshFriendBadge();
     // Being signed in resolves the whole point of the nudge — hide it.
     document.getElementById('guest-nudge').style.display = 'none';
@@ -731,6 +737,21 @@ function escapeHtml(s) {
   const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
 }
 
+// ── Ladder rank — "N ELO". The underlying elo_rating is real Elo math
+// (see server.js), but it's never shown as a number anywhere — only
+// this sorted position, styled to read as if "ELO" were a unit.
+async function loadRank() {
+  if (!supa || !currentUser) return;
+  const el = document.getElementById('stat-rank');
+  if (!el) return;
+  try {
+    const { data } = await supa.from('stats').select('user_id, elo_rating').order('elo_rating', { ascending:false });
+    if (!data || data.length === 0) { el.textContent = '—'; return; }
+    const idx = data.findIndex(r => r.user_id === currentUser.id);
+    el.textContent = idx === -1 ? '—' : (idx + 1);
+  } catch (e) { console.warn('Rank load failed:', e.message); }
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  FRIENDS
 // ═══════════════════════════════════════════════════════════════
@@ -739,9 +760,24 @@ async function loadFriendCode() {
   if (!supa || !currentUser) return;
   try {
     const { data } = await supa.from('profiles').select('friend_code').eq('id', currentUser.id).maybeSingle();
+    let code = data?.friend_code;
+    if (!code) {
+      // Self-heal: accounts created before the friend_code trigger existed
+      // (or before it was fixed) can be stuck with no code. Generate one
+      // here and save it, rather than requiring a manual DB fix.
+      code = genLocalFriendCode();
+      const { error } = await supa.from('profiles').update({ friend_code: code }).eq('id', currentUser.id);
+      if (error) code = null; // extremely rare collision — leave blank, retry next load
+    }
     const el = document.getElementById('my-friend-code');
-    if (el) el.textContent = data?.friend_code || '——';
+    if (el) el.textContent = code || '——';
   } catch (e) { console.warn('Friend code load failed:', e.message); }
+}
+
+function genLocalFriendCode() {
+  const ch = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let c=''; for (let i=0;i<6;i++) c+=ch[Math.floor(Math.random()*ch.length)];
+  return c;
 }
 
 function copyFriendCode() {
@@ -1366,7 +1402,9 @@ function cellSize() {
 function canGrow(x,y) {
   if (!gOrigin||gSel.length>=2) return false;
   if (gSel.some(p=>p.x===x&&p.y===y)) return false;
-  if (getC(x,y).hasBox) return false;
+  const c = getC(x,y);
+  if (c.hasBox) return false;
+  if (c.blackedOut) return false; // a blackout permanently voids the space — growing must never clear it
   return isAdjOrDiag(x,y,gOrigin.x,gOrigin.y);
 }
 function canNo(x,y) {
