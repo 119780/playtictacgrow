@@ -43,7 +43,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .plabel{font-size:.9rem;font-weight:700;color:var(--text)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;animation:pulse 1.4s infinite}
 .slabel{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 2px}
-.abtn{width:100%;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:11px;transition:all .15s;font-family:inherit}
+.abtn{width:100%;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:11px;transition:all .15s;font-family:inherit;position:relative}
 .abtn:hover:not(:disabled){border-color:var(--border2);background:#313131}
 .abtn.sel{border-color:var(--gold);background:rgba(240,192,64,.08)}
 .abtn:disabled{opacity:.3;cursor:not-allowed}
@@ -72,6 +72,18 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .lentry.lwin{background:rgba(240,192,64,.09);color:var(--gold);font-weight:600}
 .lentry.lnet{color:#5a8a6a;font-style:italic}
 .rbtn{background:none;border:1.5px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:8px;font-size:.77rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;width:100%}
+.forfeit-btn{
+  width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(200,56,56,.35);
+  background:rgba(200,56,56,.07);color:var(--x);font-size:.77rem;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .15s;margin-bottom:6px;
+}
+.forfeit-btn:hover{background:rgba(200,56,56,.16);border-color:rgba(200,56,56,.55)}
+.changelog-btn{
+  width:100%;padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:none;color:var(--muted);font-size:.72rem;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .15s;margin-bottom:8px;
+}
+.changelog-btn:hover{color:var(--text);border-color:var(--border2)}
 .rbtn:hover{border-color:var(--border2);color:var(--text)}
 .rpanel{display:none;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:.74rem;color:var(--muted);line-height:1.55}
 .rpanel.open{display:block}
@@ -107,8 +119,37 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .mob-msg{font-size:.7rem;color:var(--muted);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mob-cancel-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
 .mob-cancel-btn:hover{color:var(--text);border-color:var(--border2)}
+
+/* ── KEYBOARD HINT BADGES ── */
+.kbd-hint{
+  position:absolute;top:5px;right:6px;font-size:.6rem;font-weight:700;
+  color:var(--muted);background:rgba(255,255,255,.06);border:1px solid var(--border);
+  border-radius:4px;padding:1px 4px;font-family:'JetBrains Mono',monospace;
+  line-height:1.3;pointer-events:none;
+}
+.mob-btn .kbd-hint{top:3px;left:4px;right:auto;font-size:.55rem;padding:0 3px}
+
+/* ── MOBILE OVERFLOW MENU ── */
+.mob-menu-btn{
+  padding:4px 9px;border-radius:6px;border:1px solid var(--border);
+  background:none;color:var(--muted);font-size:.9rem;font-weight:700;
+  cursor:pointer;font-family:inherit;flex-shrink:0;line-height:1;
+}
+.mob-menu-btn:hover{color:var(--text);border-color:var(--border2)}
+.mob-menu{
+  display:none;flex-direction:column;gap:4px;
+  background:var(--panel2);border:1px solid var(--border);border-radius:8px;
+  padding:6px;margin-top:-2px;
+}
+.mob-menu.show{display:flex}
+.mob-menu button{
+  padding:8px 10px;border-radius:6px;border:none;background:none;
+  color:var(--text);font-size:.78rem;font-weight:600;text-align:left;
+  cursor:pointer;font-family:inherit;
+}
+.mob-menu button:hover{background:rgba(255,255,255,.06)}
 .mob-actions{display:flex;gap:6px}
-.mob-btn{flex:1;padding:9px 4px 7px;border-radius:10px;border:1.5px solid var(--border);background:var(--panel2);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .15s}
+.mob-btn{flex:1;padding:9px 4px 7px;border-radius:10px;border:1.5px solid var(--border);background:var(--panel2);cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .15s;position:relative}
 .mob-btn:hover:not(:disabled){border-color:var(--border2);background:#313131}
 .mob-btn.sel{border-color:var(--gold);background:rgba(240,192,64,.08)}
 .mob-btn:disabled{opacity:.3;cursor:not-allowed}
@@ -167,10 +208,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .lscreen{display:none;flex-direction:column;gap:10px}.lscreen.active{display:flex}
 .lbig{width:100%;padding:14px 18px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel2);color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:14px;text-align:left;transition:all .15s}
 .lbig:hover{border-color:var(--border2);background:#313131}
-.lbig .lbig-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
-.lbig.local .lbig-icon{background:rgba(200,56,56,.12)}
-.lbig.host .lbig-icon{background:rgba(56,200,112,.12)}
-.lbig.join .lbig-icon{background:rgba(32,144,176,.12)}
+.lbig-icon-img{width:40px;height:40px;border-radius:10px;flex-shrink:0;object-fit:contain;background:rgba(255,255,255,.05)}
 .lbig-title{font-size:.92rem;font-weight:700;line-height:1.2}
 .lbig-desc{font-size:.72rem;color:var(--muted);margin-top:2px}
 
@@ -192,7 +230,28 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   transition:all .15s;
 }
 .lbig-local-small:hover{border-color:var(--border2);background:#313131}
-.lbig-icon-small{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.85rem}
+.lbig-local-small .lbig-icon-img{width:22px;height:22px;background:none}
+
+/* ── RESUME / CURRENTLY PLAYING ── */
+.resume-game-btn{
+  width:100%;display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-radius:12px;border:1.5px solid var(--green);
+  background:rgba(56,200,112,.08);color:var(--text);cursor:pointer;
+  font-family:inherit;text-align:left;transition:all .15s;
+}
+.resume-game-btn:hover{background:rgba(56,200,112,.16)}
+.resume-dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 1.4s infinite}
+.resume-title{font-size:.84rem;font-weight:700;color:var(--green)}
+.resume-sub{font-size:.72rem;color:var(--muted);margin-top:1px}
+
+/* ── MATCHMAKING ── */
+.mm-card{
+  background:var(--panel2);border:1.5px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;flex-direction:column;gap:10px;
+}
+.mm-searching-row{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--text)}
+.mm-stats-line{font-size:.7rem;color:var(--muted);text-align:center}
+
 .code-box{background:var(--panel2);border:1.5px solid var(--border);border-radius:12px;padding:18px;text-align:center}
 .code-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
 .code-val{font-family:'JetBrains Mono',monospace;font-size:2.2rem;font-weight:700;letter-spacing:.25em;color:var(--text);margin-bottom:12px}
@@ -250,8 +309,44 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   flex:1;background:var(--panel2);border:1.5px solid var(--border);
   border-radius:8px;padding:8px 4px;text-align:center;
 }
+.stat-box-click{cursor:pointer;transition:all .15s}
+.stat-box-click:hover{border-color:var(--gold);background:rgba(240,192,64,.06)}
 .stat-val{font-size:1.05rem;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace}
 .stat-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+
+/* ── SHARED MODAL SYSTEM (Changelog, Leaderboard) ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.72);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);padding:20px;
+}
+.modal-overlay.show{display:flex}
+.modal-card{
+  background:var(--panel);border:1.5px solid var(--border);border-radius:16px;
+  width:380px;max-width:100%;max-height:80vh;max-height:80dvh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.modal-title{font-size:1rem;font-weight:700;color:var(--text)}
+.modal-close{
+  background:none;border:none;color:var(--muted);font-size:1.4rem;
+  cursor:pointer;line-height:1;padding:0 4px;font-family:inherit;
+}
+.modal-close:hover{color:var(--text)}
+.modal-body{
+  padding:16px 18px;overflow-y:auto;font-size:.82rem;color:var(--text);
+  line-height:1.6;white-space:pre-wrap;
+}
+
+/* ── LEADERBOARD ── */
+.lb-row{display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border-bottom:none}
+.lb-row.me{background:rgba(240,192,64,.07);border-radius:8px;padding-left:8px;padding-right:8px}
+.lb-rank{width:26px;flex-shrink:0;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--gold);text-align:center}
+.lb-name{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── GUEST NUDGE ── */
 .guest-nudge{
@@ -396,7 +491,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
           <div class="stat-box"><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
           <div class="stat-box"><div class="stat-val" id="stat-losses">0</div><div class="stat-lbl">Losses</div></div>
           <div class="stat-box"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
-          <div class="stat-box"><div class="stat-val" id="stat-rank">—</div><div class="stat-lbl">ELO</div></div>
+          <div class="stat-box stat-box-click" onclick="openLeaderboard()" title="View leaderboard"><div class="stat-val" id="stat-rank">—</div><div class="stat-lbl">ELO</div></div>
         </div>
         <div class="dash-nav-row">
           <button class="dash-nav-btn" onclick="openFriends()">
@@ -407,13 +502,18 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         </div>
       </div>
 
+      <!-- Resume a game after reconnecting -->
+      <button class="resume-game-btn" id="resume-game-btn" onclick="resumeActiveGame()" style="display:none">
+        <span class="resume-dot"></span>
+        <div>
+          <div class="resume-title">Currently Playing</div>
+          <div class="resume-sub" id="resume-game-text">vs Opponent</div>
+        </div>
+      </button>
+
       <button class="lbig-play" onclick="showPlayScreen()">
         <div class="lbig-play-title">Play</div>
-        <div class="lbig-play-desc">Host or join an online game</div>
-      </button>
-      <button class="lbig-local-small" onclick="startLocal()">
-        <span class="lbig-icon-small" style="color:var(--x)">2P</span>
-        Play Locally — two players, one screen
+        <div class="lbig-play-desc">Local, online, ranked, or with friends</div>
       </button>
 
       <div id="recent-matches-block" style="display:none">
@@ -422,16 +522,50 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
       </div>
     </div>
 
-    <!-- Play (host/join choice) -->
+    <!-- Play hub — every way to start a game lives here -->
     <div class="lscreen" id="ls-play">
+
+      <!-- Matchmaking -->
+      <div class="mm-card" id="mm-idle">
+        <div class="ranked-toggle-row">
+          <div class="ranked-toggle-text">
+            <div class="ranked-toggle-title">Ranked Matchmaking</div>
+            <div class="ranked-toggle-desc" id="mm-ranked-desc">Sign in to enable ranked play</div>
+          </div>
+          <button class="toggle-switch" id="mm-ranked-toggle" onclick="toggleMMRanked()"></button>
+        </div>
+        <button class="lbtn-pri" style="width:100%" onclick="findMatch()">Find Match</button>
+        <div class="mm-stats-line" id="mm-stats-line">— online</div>
+      </div>
+      <div class="mm-card" id="mm-searching" style="display:none">
+        <div class="mm-searching-row">
+          <div class="spinner"></div>
+          <span id="mm-searching-text">Searching for an opponent…</span>
+        </div>
+        <div class="mm-stats-line" id="mm-stats-line-2">— online</div>
+        <button class="lbtn-sec" style="width:100%" onclick="cancelFindMatch()">Cancel</button>
+      </div>
+
+      <div class="div" style="margin:2px 0"></div>
+
+      <button class="lbig-local-small" onclick="startLocal()">
+        <img class="lbig-icon-img" src="icon-local.png" alt="">
+        Play Locally — two players, one screen
+      </button>
       <button class="lbig host" onclick="showHostScreen()">
-        <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--green)">HOST</div>
+        <img class="lbig-icon-img" src="icon-host.png" alt="">
         <div><div class="lbig-title">Host a Game</div><div class="lbig-desc">Get a code, share with your friend</div></div>
       </button>
       <button class="lbig join" onclick="showJoinScreen()">
-        <div class="lbig-icon" style="font-size:.9rem;font-weight:700;color:var(--o)">JOIN</div>
+        <img class="lbig-icon-img" src="icon-join.png" alt="">
         <div><div class="lbig-title">Join a Game</div><div class="lbig-desc">Enter a friend's room code</div></div>
       </button>
+
+      <div id="play-friends-block" style="display:none">
+        <div class="friends-subhead">Invite a Friend</div>
+        <div id="play-friends-list" class="friends-list"></div>
+      </div>
+
       <button class="lbtn-sec" style="width:100%;margin-top:4px" onclick="showChooseScreen()">Back</button>
     </div>
 
@@ -543,9 +677,31 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   </div>
 </div>
 
+<!-- ══ CHANGELOG MODAL ══ -->
+<div class="modal-overlay" id="changelog-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">What's New</div>
+      <button class="modal-close" onclick="closeChangelog()">×</button>
+    </div>
+    <div class="modal-body" id="changelog-body">Loading…</div>
+  </div>
+</div>
+
+<!-- ══ LEADERBOARD MODAL ══ -->
+<div class="modal-overlay" id="leaderboard-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Leaderboard</div>
+      <button class="modal-close" onclick="closeLeaderboard()">×</button>
+    </div>
+    <div class="modal-body" id="leaderboard-body">Loading…</div>
+  </div>
+</div>
+
 <!-- ══ HEADER ══ -->
 <header class="hdr">
-  <span class="logo" onclick="goHome()" title="Go to dashboard">Tic<b>Tac</b><i>Grow</i></span>
+  <span class="logo" onclick="confirmForfeit()" title="Go to dashboard">Tic<b>Tac</b><i>Grow</i></span>
   <div class="hdr-space"></div>
   <div class="conn-badge" id="conn-badge" style="display:none">
     <div class="conn-dot"></div><span id="conn-label">Online</span>
@@ -569,12 +725,15 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div class="slabel">Choose Action</div>
     <button id="btn-tic" class="abtn tic" onclick="selectAction('tic')">
       <div class="aicon">x</div><div><div class="atitle">Tic</div><div class="adesc">Place your symbol in a box</div></div>
+      <span class="kbd-hint">1</span>
     </button>
     <button id="btn-grow" class="abtn grow" onclick="selectAction('grow')">
       <div class="aicon">+</div><div><div class="atitle">Grow</div><div class="adesc">Add 1–2 new full boxes</div></div>
+      <span class="kbd-hint">2</span>
     </button>
     <button id="btn-no" class="abtn no" onclick="selectAction('no')">
       <div class="aicon">■</div><div><div class="atitle">No</div><div class="adesc">Black out any space</div></div>
+      <span class="kbd-hint">3</span>
     </button>
     <div class="scard"><div class="stitle" id="stitle">Your Turn</div><div class="smsg" id="smsg">Select an action above.</div></div>
     <div id="ctrl-grow" style="display:none">
@@ -625,6 +784,8 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
       <strong>WIN</strong>Three symbols in a row — horizontal, vertical, or diagonal. Blacked-out squares break any line.
     </div>
     <div style="flex:1"></div>
+    <button class="forfeit-btn" id="forfeit-btn" onclick="confirmForfeit()" style="display:none">Forfeit Game</button>
+    <button class="changelog-btn" onclick="openChangelog()">What's New</button>
     <div style="text-align:center;font-size:.7rem;color:var(--muted)">TicTacGrow · Local &amp; Online</div>
   </aside>
 </div>
@@ -635,15 +796,23 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <span class="mob-turn" id="mob-turn">Player 1's Turn</span>
     <span class="mob-msg" id="mob-msg">Select an action</span>
     <button class="mob-cancel-btn" id="mob-cancel-btn" onclick="cancelAction()" style="display:none">Cancel</button>
+    <button class="mob-menu-btn" onclick="toggleMobMenu()">⋯</button>
+  </div>
+  <div class="mob-menu" id="mob-menu">
+    <button onclick="toggleMobMenu();confirmForfeit()">Forfeit Game</button>
+    <button onclick="toggleMobMenu();openChangelog()">What's New</button>
   </div>
   <div class="mob-actions" id="mob-actions">
     <button class="mob-btn tic" id="mob-btn-tic" onclick="selectAction('tic')">
+      <span class="kbd-hint">1</span>
       <span class="mob-icon" style="color:var(--x)">x</span><span class="mob-label">Tic</span>
     </button>
     <button class="mob-btn grow" id="mob-btn-grow" onclick="selectAction('grow')">
+      <span class="kbd-hint">2</span>
       <span class="mob-icon" style="color:var(--green)">+</span><span class="mob-label">Grow</span>
     </button>
     <button class="mob-btn no" id="mob-btn-no" onclick="selectAction('no')">
+      <span class="kbd-hint">3</span>
       <span class="mob-icon" style="color:var(--muted)">■</span><span class="mob-label">No</span>
     </button>
   </div>
@@ -787,25 +956,70 @@ function escapeHtml(s) {
 // ── Ladder rank — "N ELO". The underlying elo_rating is real Elo math
 // (see server.js), but it's never shown as a number anywhere — only
 // this sorted position, styled to read as if "ELO" were a unit.
+// Shared sort: elo descending, ties broken by older account first (not
+// newer) — used by both the personal rank display and the leaderboard.
+async function fetchSortedStats() {
+  if (!supa) return [];
+  const { data } = await supa.from('stats').select('user_id, elo_rating, profiles:user_id(display_name, avatar_url, created_at)');
+  if (!data) return [];
+  return data.slice().sort((a, b) => {
+    if (b.elo_rating !== a.elo_rating) return b.elo_rating - a.elo_rating;
+    const at = a.profiles?.created_at ? new Date(a.profiles.created_at).getTime() : Infinity;
+    const bt = b.profiles?.created_at ? new Date(b.profiles.created_at).getTime() : Infinity;
+    return at - bt; // older (smaller timestamp) sorts first on a tie
+  });
+}
+
 async function loadRank() {
   if (!supa || !currentUser) return;
   const el = document.getElementById('stat-rank');
   if (!el) return;
   try {
-    // Pull created_at via the profiles relationship so ties (e.g. everyone
-    // still sitting at the default 1200) have a deterministic tiebreak —
-    // older accounts rank ahead of newer ones, not the other way round.
-    const { data } = await supa.from('stats').select('user_id, elo_rating, profiles:user_id(created_at)');
-    if (!data || data.length === 0) { el.textContent = '—'; return; }
-    const sorted = data.slice().sort((a, b) => {
-      if (b.elo_rating !== a.elo_rating) return b.elo_rating - a.elo_rating;
-      const at = a.profiles?.created_at ? new Date(a.profiles.created_at).getTime() : Infinity;
-      const bt = b.profiles?.created_at ? new Date(b.profiles.created_at).getTime() : Infinity;
-      return at - bt; // older (smaller timestamp) sorts first on a tie
-    });
+    const sorted = await fetchSortedStats();
+    if (sorted.length === 0) { el.textContent = '—'; return; }
     const idx = sorted.findIndex(r => r.user_id === currentUser.id);
     el.textContent = idx === -1 ? '—' : (idx + 1);
   } catch (e) { console.warn('Rank load failed:', e.message); }
+}
+
+async function openLeaderboard() {
+  document.getElementById('leaderboard-modal').classList.add('show');
+  const body = document.getElementById('leaderboard-body');
+  body.textContent = 'Loading…';
+  try {
+    const sorted = await fetchSortedStats();
+    const top = sorted.slice(0, 20);
+    if (top.length === 0) { body.innerHTML = '<div class="friends-empty">No ranked players yet.</div>'; return; }
+    body.innerHTML = top.map((r, i) => {
+      const mine = currentUser && r.user_id === currentUser.id;
+      const name = r.profiles?.display_name || 'Player';
+      return `<div class="lb-row ${mine?'me':''}"><div class="lb-rank">${i+1}</div><div class="lb-name">${escapeHtml(name)}</div></div>`;
+    }).join('');
+  } catch (e) {
+    body.textContent = 'Could not load the leaderboard.';
+  }
+}
+
+function closeLeaderboard() {
+  document.getElementById('leaderboard-modal').classList.remove('show');
+}
+
+// ── Changelog — reads changelog.txt from the same folder as index.html ──
+async function openChangelog() {
+  document.getElementById('changelog-modal').classList.add('show');
+  const body = document.getElementById('changelog-body');
+  body.textContent = 'Loading…';
+  try {
+    const res = await fetch('changelog.txt', { cache:'no-store' });
+    if (!res.ok) throw new Error('not found');
+    body.textContent = await res.text();
+  } catch (e) {
+    body.textContent = 'No changelog available yet.';
+  }
+}
+
+function closeChangelog() {
+  document.getElementById('changelog-modal').classList.remove('show');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -868,14 +1082,24 @@ async function sendFriendRequest() {
   }
 }
 
+// Accepted friends only (no pending requests) — shared by the full
+// Friends screen and the compact list on the Play page.
+async function fetchAcceptedFriends() {
+  if (!supa || !currentUser) return [];
+  const [{data: sentAcc}, {data: recvAcc}] = await Promise.all([
+    supa.from('friendships').select('id, addressee:addressee_id(id,display_name,avatar_url)').eq('requester_id', currentUser.id).eq('status','accepted'),
+    supa.from('friendships').select('id, requester:requester_id(id,display_name,avatar_url)').eq('addressee_id', currentUser.id).eq('status','accepted'),
+  ]);
+  return [
+    ...(sentAcc||[]).map(r => r.addressee),
+    ...(recvAcc||[]).map(r => r.requester),
+  ].filter(Boolean);
+}
+
 async function loadFriends() {
   if (!supa || !currentUser) return;
   try {
-    const [{data: incoming}, {data: sentAcc}, {data: recvAcc}] = await Promise.all([
-      supa.from('friendships').select('id, requester:requester_id(id,display_name,avatar_url)').eq('addressee_id', currentUser.id).eq('status','pending'),
-      supa.from('friendships').select('id, addressee:addressee_id(id,display_name,avatar_url)').eq('requester_id', currentUser.id).eq('status','accepted'),
-      supa.from('friendships').select('id, requester:requester_id(id,display_name,avatar_url)').eq('addressee_id', currentUser.id).eq('status','accepted'),
-    ]);
+    const { data: incoming } = await supa.from('friendships').select('id, requester:requester_id(id,display_name,avatar_url)').eq('addressee_id', currentUser.id).eq('status','pending');
 
     const reqBlock = document.getElementById('friend-requests-block');
     const reqList  = document.getElementById('friend-requests-list');
@@ -886,11 +1110,7 @@ async function loadFriends() {
       reqBlock.style.display = 'none'; reqList.innerHTML = '';
     }
 
-    const friends = [
-      ...(sentAcc||[]).map(r => r.addressee),
-      ...(recvAcc||[]).map(r => r.requester),
-    ].filter(Boolean);
-
+    const friends = await fetchAcceptedFriends();
     const listEl = document.getElementById('friends-list');
     listEl.innerHTML = friends.length
       ? friends.map(f => friendRowHtml(f, null, false)).join('')
@@ -899,6 +1119,20 @@ async function loadFriends() {
     sessionStorage.setItem('ttg_friend_req_count', String((incoming||[]).length));
     refreshFriendBadge();
   } catch (e) { console.warn('Friends load failed:', e.message); }
+}
+
+// Compact invite list shown directly on the Play hub — same data, no
+// accept/decline noise, just names with a Play button.
+async function loadPlayFriends() {
+  const block = document.getElementById('play-friends-block');
+  const list  = document.getElementById('play-friends-list');
+  if (!currentUser) { block.style.display = 'none'; return; }
+  try {
+    const friends = await fetchAcceptedFriends();
+    if (friends.length === 0) { block.style.display = 'none'; return; }
+    block.style.display = 'block';
+    list.innerHTML = friends.map(f => friendRowHtml(f, null, false)).join('');
+  } catch (e) { block.style.display = 'none'; }
 }
 
 function friendRowHtml(person, friendshipId, isRequest) {
@@ -939,6 +1173,95 @@ async function refreshFriendBadge() {
 function inviteFriend(friendId, friendName) {
   pendingInviteTarget = { id: friendId, name: friendName };
   prepareHostSetupScreen();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MATCHMAKING — elo-based, ranked or unranked
+// ═══════════════════════════════════════════════════════════════
+let mmRanked = false;
+let mmActive = false;
+
+function toggleMMRanked() {
+  if (!currentUser) return; // ranked requires sign-in, guard mirrors the toggle's disabled state
+  mmRanked = !mmRanked;
+  document.getElementById('mm-ranked-toggle').classList.toggle('on', mmRanked);
+}
+
+function updateMMUI() {
+  const toggle = document.getElementById('mm-ranked-toggle');
+  const desc   = document.getElementById('mm-ranked-desc');
+  if (!currentUser) {
+    mmRanked = false;
+    toggle.classList.remove('on');
+    toggle.disabled = true;
+    desc.textContent = 'Sign in to enable ranked play';
+  } else {
+    toggle.disabled = false;
+    desc.textContent = 'Matched by skill — affects your ladder rank';
+  }
+  document.getElementById('mm-idle').style.display = mmActive ? 'none' : 'flex';
+  document.getElementById('mm-searching').style.display = mmActive ? 'flex' : 'none';
+}
+
+function findMatch() {
+  if (mmRanked && !currentUser) return;
+  mmActive = true;
+  updateMMUI();
+  document.getElementById('mm-searching-text').textContent = mmRanked ? 'Searching for a ranked opponent…' : 'Searching for an opponent…';
+  connectWS(() => sendToServer({ type:'find-match', token: currentSession?.access_token || null, ranked: mmRanked }));
+}
+
+function cancelFindMatch() {
+  sendToServer({ type:'cancel-match' });
+  mmActive = false;
+  updateMMUI();
+}
+
+function updateQueueStatsDisplay(data) {
+  const text = `${data.online} online · ${data.rankedQueue} in ranked queue · ${data.unrankedQueue} in unranked queue`;
+  const a = document.getElementById('mm-stats-line');
+  const b = document.getElementById('mm-stats-line-2');
+  if (a) a.textContent = text;
+  if (b) b.textContent = text;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RECONNECT — "Currently Playing" resume after an accidental drop
+// ═══════════════════════════════════════════════════════════════
+let attemptingResume = false;
+
+function saveActiveGame(code, role, opponentName, ranked) {
+  try {
+    localStorage.setItem('ttg_active_game', JSON.stringify({ code, role, opponentName, ranked, savedAt: Date.now() }));
+  } catch (e) {}
+}
+function clearActiveGame() {
+  try { localStorage.removeItem('ttg_active_game'); } catch (e) {}
+  const btn = document.getElementById('resume-game-btn');
+  if (btn) btn.style.display = 'none';
+}
+function getActiveGame() {
+  try { const raw = localStorage.getItem('ttg_active_game'); return raw ? JSON.parse(raw) : null; }
+  catch (e) { return null; }
+}
+
+function checkActiveGameBanner() {
+  const g = getActiveGame();
+  const btn = document.getElementById('resume-game-btn');
+  if (!btn) return;
+  if (g) {
+    btn.style.display = 'flex';
+    document.getElementById('resume-game-text').textContent = `vs ${g.opponentName || 'Opponent'}${g.ranked ? ' · Ranked' : ''}`;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function resumeActiveGame() {
+  const g = getActiveGame();
+  if (!g) return;
+  attemptingResume = true;
+  connectWS(() => sendToServer({ type:'rejoin', roomCode:g.code, role:g.role, token: currentSession?.access_token || null }));
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1092,6 +1415,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
+      saveActiveGame(roomCode, 'host', data.guestName, false);
       logNet('Connected — you are x (P1). ' + (data.state.curP===1 ? 'You go first.' : 'Opponent goes first.'));
       break;
 
@@ -1102,7 +1426,52 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       applyServerState(data.state, null, true);
+      saveActiveGame(data.code || roomCode, 'guest', data.hostName, false);
       logNet('Connected — you are o (P2). ' + (data.state.curP===2 ? 'You go first.' : 'Opponent goes first.'));
+      break;
+
+    case 'match-found':
+      myRole = data.role; isOnline = true; mmActive = false; updateMMUI();
+      roomCode = data.code;
+      document.getElementById('p1name').textContent = data.role==='host' ? 'You' : (data.opponentName||'Opponent');
+      document.getElementById('p2name').textContent = data.role==='guest' ? 'You' : (data.opponentName||'Opponent');
+      updateConnBadge('online');
+      hideLobby();
+      applyServerState(data.state, null, true);
+      saveActiveGame(data.code, data.role, data.opponentName, data.ranked);
+      logNet(`Matched with ${data.opponentName || 'an opponent'}${data.ranked ? ' — ranked' : ''}.`);
+      break;
+
+    case 'queued':
+      mmActive = true; updateMMUI();
+      break;
+
+    case 'match-cancelled':
+      mmActive = false; updateMMUI();
+      break;
+
+    case 'queue-stats':
+      updateQueueStatsDisplay(data);
+      break;
+
+    case 'rejoined':
+      myRole = data.role; isOnline = true; attemptingResume = false;
+      roomCode = data.code || roomCode;
+      document.getElementById('p1name').textContent = data.role==='host' ? 'You' : (data.opponentName||'Opponent');
+      document.getElementById('p2name').textContent = data.role==='guest' ? 'You' : (data.opponentName||'Opponent');
+      updateConnBadge('online');
+      hideLobby();
+      applyServerState(data.state, null, true);
+      saveActiveGame(roomCode, data.role, data.opponentName, data.ranked);
+      logNet('Reconnected to your game.');
+      break;
+
+    case 'opponent-disconnected-grace':
+      showToast(`Opponent disconnected — ${Math.round((data.graceMs||60000)/1000)}s to reconnect or it's a forfeit`);
+      break;
+
+    case 'opponent-reconnected':
+      showToast('Opponent reconnected.');
       break;
 
     case 'state':
@@ -1120,6 +1489,7 @@ function handleServerMessage(data) {
       over = true; phase = 'idle'; showCtrl('none');
       ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
       renderBoard();
+      clearActiveGame();
       showWinScreen(true, 'Opponent Resigned', 'You win by resignation');
       break;
 
@@ -1141,10 +1511,17 @@ function handleServerMessage(data) {
       if (btn) { btn.disabled = true; btn.textContent = 'Opponent Left'; }
       const msg = document.getElementById('opp-ready-msg');
       if (msg) msg.textContent = 'Opponent has left the game.';
+      clearActiveGame();
       break;
     }
 
     case 'error':
+      if (attemptingResume) {
+        attemptingResume = false;
+        clearActiveGame();
+        showToast(data.message || 'Could not rejoin that game.');
+        break;
+      }
       if (!isOnline) { setLobbyErr(data.message); resetJoinBtn(); }
       else { setStatus('Error', data.message); updatePlayerUI(); }
       break;
@@ -1243,14 +1620,17 @@ function showScreen(id) {
 
 function showPlayScreen() {
   showScreen('ls-play');
+  updateMMUI();
+  loadPlayFriends();
 }
 
 function showChooseScreen() {
   if (ws) { try { ws.close(); } catch(e){} ws=null; }
-  isOnline=false; myRole=null; roomCode=null; pendingInviteTarget=null;
+  isOnline=false; myRole=null; roomCode=null; pendingInviteTarget=null; mmActive=false;
   updateConnBadge();
   showScreen('ls-choose');
   setLobbyErr('');
+  checkActiveGameBanner();
 }
 
 // ── Host flow: pick ranked/casual first, then create the room ──
@@ -1312,6 +1692,7 @@ function showJoinScreen() {
 function startLocal() {
   if (ws) { try { ws.close(); } catch(e){} ws=null; }
   isOnline=false; myRole=null;
+  clearActiveGame(); // deliberately choosing local abandons any pending online reconnect
   hideLobby();
   resetGame();
 }
@@ -1413,8 +1794,21 @@ function goHome() {
     isOnline = false; // prevent onDisconnect re-entry
     if (ws) { if (ws._hb) clearInterval(ws._hb); try { ws.close(); } catch(e){} ws = null; }
   }
+  clearActiveGame(); // deliberate exit — no reconnect needed
   document.getElementById('wov').classList.remove('show');
   showLobby();
+}
+
+// A deliberate forfeit — logo click, sidebar button, or mobile menu all
+// route here. Confirms first so a stray tap doesn't cost a game, then
+// reuses goHome()'s existing resign-then-navigate logic.
+function confirmForfeit() {
+  if (over || !isOnline) { goHome(); return; } // nothing live to forfeit, just navigate
+  if (confirm('Forfeit this game? Your opponent will win.')) goHome();
+}
+
+function toggleMobMenu() {
+  document.getElementById('mob-menu').classList.toggle('show');
 }
 
 function requestRematch() {
@@ -1714,6 +2108,7 @@ function updatePlayerUI() {
   // sync mobile bar
   ['tic','grow','no'].forEach(id=>{const mb=document.getElementById('mob-btn-'+id);if(mb)mb.disabled=document.getElementById('btn-'+id).disabled;});
   const mt=document.getElementById('mob-turn');if(mt)mt.textContent=pillText;
+  const fb=document.getElementById('forfeit-btn'); if(fb) fb.style.display = (isOnline && !over) ? 'block' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1811,6 +2206,7 @@ document.addEventListener('keydown', e => {
 
 initAuth();
 resetGame();
+checkActiveGameBanner();
 </script>
 </body>
 </html>
