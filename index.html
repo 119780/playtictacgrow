@@ -1983,17 +1983,29 @@ let annoPopupTarget = null; // {x,y} pending a symbol choice
 function showAnnoPopup(x, y, clientX, clientY) {
   annoPopupTarget = { x, y };
   const pop = document.getElementById('anno-popup');
+
+  // Show it offscreen first so we can measure its size
+  pop.style.left = '-9999px';
+  pop.style.top  = '-9999px';
   pop.style.display = 'flex';
 
-  // Position near cursor, nudge inward if too close to edge
-  let px = clientX + 10;
-  let py = clientY + 10;
-  if (px + 96  > window.innerWidth)  px = clientX - 96;
-  if (py + 56  > window.innerHeight) py = clientY - 56;
+  const popW = pop.offsetWidth;
+  const popH = pop.offsetHeight;
+
+  // Get the cell's center in viewport coordinates
+  const barea  = document.querySelector('.barea');
+  const ar     = barea.getBoundingClientRect();
+  const center = getCellCenter(x, y);
+  const viewX  = ar.left + center.x;
+  const viewY  = ar.top  + center.y;
+
+  // Place popup centered on the cell, clamped to viewport edges
+  const px = Math.max(4, Math.min(viewX - popW / 2, window.innerWidth  - popW - 4));
+  const py = Math.max(4, Math.min(viewY - popH / 2, window.innerHeight - popH - 4));
+
   pop.style.left = px + 'px';
   pop.style.top  = py + 'px';
 
-  // Any outside click dismisses it
   setTimeout(() => document.addEventListener('mousedown', hideAnnoPopup, { once: true }), 0);
 }
 
@@ -2166,8 +2178,14 @@ function initAnnotations() {
     const coord = getGridCoordAt(e.clientX - ar.left, e.clientY - ar.top);
 
     if (!annoDragging && annoDragStart) {
-      // Click → tic annotation
-      showAnnoPopup(annoDragStart.x, annoDragStart.y, e.clientX, e.clientY);
+      const k = K(annoDragStart.x, annoDragStart.y);
+      if (annotations.tics[k]) {
+        // Already ghost-tic'd — just clear it, no popup
+        delete annotations.tics[k];
+        renderBoard();
+      } else {
+        showAnnoPopup(annoDragStart.x, annoDragStart.y, e.clientX, e.clientY);
+      }
     } else if (annoDragging && annoDragStart && coord) {
       if (coord.x !== annoDragStart.x || coord.y !== annoDragStart.y) {
         // Drag → grow arrow
