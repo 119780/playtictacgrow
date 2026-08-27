@@ -489,8 +489,38 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   opacity: 1 !important;
   outline: 2px solid #fff4;
 }
+
+#anno-popup {
+  position: fixed;
+  z-index: 2000;
+  display: none;
+  flex-direction: row;
+  gap: 6px;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 24px #0008;
+}
+.anno-pop-btn {
+  width: 36px; height: 36px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background .12s;
+}
+.anno-pop-btn.x { color: var(--x) }
+.anno-pop-btn.x:hover { background: rgba(var(--x-rgb), .15) }
+.anno-pop-btn.o { color: var(--o) }
+.anno-pop-btn.o:hover { background: rgba(var(--o-rgb), .15) }
+  
 </style>
 </head>
+
 <body>
 
 <!-- ══ LOBBY ══ -->
@@ -801,9 +831,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 
   <!-- Symbol picker — only visible in annotate mode -->
   <div id="anno-picker" style="display:none;gap:6px" class="ctrl-row">
-    <button id="anno-x-btn" class="btn-ok" style="background:var(--x);color:#fff" onclick="setAnnoSymbol('X')">X</button>
-    <button id="anno-o-btn" class="btn-can" onclick="setAnnoSymbol('O')">O</button>
-    <button class="btn-can" onclick="clearAnnotations()" title="Clear all">✕</button>
+    <button class="btn-can" onclick="clearAnnotations()">Clear</button>
   </div>
   </aside>
 
@@ -1925,25 +1953,14 @@ function toggleAnnotateMode() {
   renderBoard();
 }
 
-function setAnnoSymbol(sym) {
-  annotateSymbol = sym;
-  updateAnnoUI();
-}
-
 function updateAnnoUI() {
   const btn    = document.getElementById('annotate-btn');
   const picker = document.getElementById('anno-picker');
-  const xbtn   = document.getElementById('anno-x-btn');
-  const obtn   = document.getElementById('anno-o-btn');
   const barea  = document.querySelector('.barea');
 
   btn?.classList.toggle('sel', annotateMode);
   if (picker) picker.style.display = annotateMode ? 'flex' : 'none';
   barea?.classList.toggle('annotate-active', annotateMode);
-
-  // Highlight the active symbol button
-  xbtn?.classList.toggle('anno-sym-active', annotateSymbol === 'X');
-  obtn?.classList.toggle('anno-sym-active', annotateSymbol === 'O');
 
   // Lock/unlock game action buttons
   ['tic','grow','no'].forEach(id => {
@@ -1959,6 +1976,44 @@ function clearAnnotations() {
   annotations.grows = [];
   annoPreview = null;
   renderAnnoSVG();
+  renderBoard();
+}
+
+let annoPopupTarget = null; // {x,y} pending a symbol choice
+
+function showAnnoPopup(x, y, clientX, clientY) {
+  annoPopupTarget = { x, y };
+  const pop = document.getElementById('anno-popup');
+  pop.style.display = 'flex';
+
+  // Position near cursor, nudge inward if too close to edge
+  let px = clientX + 10;
+  let py = clientY + 10;
+  if (px + 96  > window.innerWidth)  px = clientX - 96;
+  if (py + 56  > window.innerHeight) py = clientY - 56;
+  pop.style.left = px + 'px';
+  pop.style.top  = py + 'px';
+
+  // Any outside click dismisses it
+  setTimeout(() => document.addEventListener('mousedown', hideAnnoPopup, { once: true }), 0);
+}
+
+function hideAnnoPopup(e) {
+  // Don't dismiss if the click was on the popup itself
+  const pop = document.getElementById('anno-popup');
+  if (e && pop.contains(e.target)) return;
+  pop.style.display = 'none';
+  annoPopupTarget = null;
+}
+
+function commitAnnoTic(sym) {
+  if (!annoPopupTarget) return;
+  const k = K(annoPopupTarget.x, annoPopupTarget.y);
+  // Toggle: same symbol again → remove it
+  if (annotations.tics[k] === sym) delete annotations.tics[k];
+  else annotations.tics[k] = sym;
+  document.getElementById('anno-popup').style.display = 'none';
+  annoPopupTarget = null;
   renderBoard();
 }
 
@@ -2046,7 +2101,7 @@ function buildGrowArrowSVG(gx1, gy1, gx2, gy2, sz, preview) {
     <line x1="${lx1.toFixed(1)}" y1="${ly1.toFixed(1)}"
           x2="${lx2.toFixed(1)}" y2="${ly2.toFixed(1)}"
           stroke="${col}" stroke-width="${sw.toFixed(1)}"
-          stroke-linecap="round" opacity="${op}"/>
+          stroke-linecap="butt" opacity="${op}"/>
     <polygon points="${tip} ${bl} ${br2}" fill="${col}" opacity="${op}"/>`;
 }
 
@@ -2113,7 +2168,7 @@ function initAnnotations() {
 
     if (!annoDragging && annoDragStart) {
       // Click → tic annotation
-      toggleAnnoTic(annoDragStart.x, annoDragStart.y);
+      showAnnoPopup(annoDragStart.x, annoDragStart.y, e.clientX, e.clientY);
     } else if (annoDragging && annoDragStart && coord) {
       if (coord.x !== annoDragStart.x || coord.y !== annoDragStart.y) {
         // Drag → grow arrow
@@ -2518,5 +2573,9 @@ resetGame();
 initAnnotations();
 checkActiveGameBanner();
 </script>
+  <div id="anno-popup" style="display:none">
+    <button class="anno-pop-btn x" onclick="commitAnnoTic('X')">x</button>
+    <button class="anno-pop-btn o" onclick="commitAnnoTic('O')">o</button>
+  </div>
 </body>
 </html>
