@@ -446,6 +446,49 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* Ghost tic symbol overlay */
+.anno-tic {
+  position: absolute;
+  opacity: 0.38;
+  z-index: 5;
+  pointer-events: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  line-height: 1;
+}
+.anno-tic.x { color: var(--x); }
+.anno-tic.o { color: var(--o); }
+
+/* Fake-No overlay — translucent version of your blk-fill */
+.anno-no {
+  position: absolute;
+  inset: 3px;
+  background-image: url('scribble.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.38;
+  z-index: 5;
+  pointer-events: none;
+  /* tint it red so it reads differently from a real blackout */
+  filter: sepia(1) saturate(3) hue-rotate(-20deg);
+}
+
+/* Annotate mode active state on the board */
+.barea.annotate-active { cursor: crosshair; }
+
+/* Active annotate button */
+#annotate-btn.sel {
+  border-color: var(--gold);
+  background: rgba(240,192,64,.08);
+}
+
+/* Picker button active state */
+.anno-sym-active {
+  opacity: 1 !important;
+  outline: 2px solid #fff4;
+}
 </style>
 </head>
 <body>
@@ -745,12 +788,28 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div id="ctrl-cancel" style="display:none">
       <button class="btn-can-full" onclick="cancelAction()">Cancel</button>
     </div>
+    <div class="div"></div>
+  <div class="slabel">Annotate</div>
+
+  <button id="annotate-btn" class="abtn" onclick="toggleAnnotateMode()">
+    <div class="aicon" style="background:rgba(240,192,64,.1);color:var(--gold)">✏</div>
+    <div>
+      <div class="atitle">Draw Mode</div>
+      <div class="adesc">Plan moves visually</div>
+    </div>
+  </button>
+
+  <!-- Symbol picker — only visible in annotate mode -->
+  <div id="anno-picker" style="display:none;gap:6px" class="ctrl-row">
+    <button id="anno-x-btn" class="btn-ok" style="background:var(--x);color:#fff" onclick="setAnnoSymbol('X')">X</button>
+    <button id="anno-o-btn" class="btn-can" onclick="setAnnoSymbol('O')">O</button>
+    <button class="btn-can" onclick="clearAnnotations()" title="Clear all">✕</button>
+  </div>
   </aside>
 
   <main class="barea" id="barea">
-    <div id="board">
-      <svg id="anno-svg" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10"></svg>
-    </div>
+    <div id="board"></div>
+    <svg id="anno-svg" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10"></svg>
     
     <div class="wov" id="wov">
       <div class="wcard">
@@ -1841,6 +1900,236 @@ function updateConnBadge(state) {
 const BUFFER = 3;
 let cells={}, curP=1, phase='idle', gOrigin=null, gSel=[], winCells=[], over=false;
 
+// ═══════════════════════════════════════════════════════
+//  ANNOTATION / DRAW MODE
+// ═══════════════════════════════════════════════════════
+
+let annotateMode   = false;
+let annotateSymbol = 'X';  // which symbol tic-annotations place
+
+const annotations = {
+  tics:  {},   // key "x,y" → 'X' | 'O'
+  nos:   {},   // key "x,y" → true
+  grows: [],   // [{x1,y1,x2,y2}]
+};
+
+let annoDragStart = null;  // {x,y} grid coord on left-mousedown
+let annoDragging  = false; // true once cursor moves to a different cell
+let annoPreview   = null;  // {x1,y1,x2,y2} live preview while dragging
+
+// ── Toggle annotate mode on/off ──────────────────────────
+function toggleAnnotateMode() {
+  annotateMode = !annotateMode;
+  if (!annotateMode) clearAnnotations();
+  updateAnnoUI();
+  renderBoard();
+}
+
+function setAnnoSymbol(sym) {
+  annotateSymbol = sym;
+  updateAnnoUI();
+}
+
+function updateAnnoUI() {
+  const btn    = document.getElementById('annotate-btn');
+  const picker = document.getElementById('anno-picker');
+  const xbtn   = document.getElementById('anno-x-btn');
+  const obtn   = document.getElementById('anno-o-btn');
+  const barea  = document.querySelector('.barea');
+
+  btn?.classList.toggle('sel', annotateMode);
+  if (picker) picker.style.display = annotateMode ? 'flex' : 'none';
+  barea?.classList.toggle('annotate-active', annotateMode);
+
+  // Highlight the active symbol button
+  xbtn?.classList.toggle('anno-sym-active', annotateSymbol === 'X');
+  obtn?.classList.toggle('anno-sym-active', annotateSymbol === 'O');
+
+  // Lock/unlock game action buttons
+  ['tic','grow','no'].forEach(id => {
+    const b = document.getElementById('btn-'+id);
+    if (b) b.disabled = annotateMode;
+  });
+}
+
+// ── Clear everything ─────────────────────────────────────
+function clearAnnotations() {
+  annotations.tics  = {};
+  annotations.nos   = {};
+  annotations.grows = [];
+  annoPreview = null;
+  renderAnnoSVG();
+  renderBoard();
+}
+
+// ── Toggle helpers ────────────────────────────────────────
+function toggleAnnoTic(x, y) {
+  const k = K(x, y);
+  // If same symbol already there → remove; else place current symbol
+  if (annotations.tics[k] === annotateSymbol) delete annotations.tics[k];
+  else annotations.tics[k] = annotateSymbol;
+  renderBoard();
+}
+
+function toggleAnnoNo(x, y) {
+  const k = K(x, y);
+  if (annotations.nos[k]) delete annotations.nos[k];
+  else annotations.nos[k] = true;
+  renderBoard();
+}
+
+function toggleAnnoGrow(x1, y1, x2, y2) {
+  const i = annotations.grows.findIndex(
+    g => g.x1 === x1 && g.y1 === y1 && g.x2 === x2 && g.y2 === y2
+  );
+  if (i >= 0) annotations.grows.splice(i, 1);
+  else annotations.grows.push({ x1, y1, x2, y2 });
+}
+
+// ── Coord helpers (depend on your existing viewBounds/cellSize) ──
+function getCellCenter(gx, gy) {
+  const board = document.getElementById('board');
+  const barea = document.querySelector('.barea');
+  const br    = board.getBoundingClientRect();
+  const ar    = barea.getBoundingClientRect();
+  const vb    = viewBounds();
+  const sz    = cellSize();
+  return {
+    x: (br.left - ar.left) + (gx - vb.minX + 0.5) * sz,
+    y: (br.top  - ar.top)  + (gy - vb.minY + 0.5) * sz,
+  };
+}
+
+function getGridCoordAt(px, py) {
+  const board = document.getElementById('board');
+  const barea = document.querySelector('.barea');
+  const br    = board.getBoundingClientRect();
+  const ar    = barea.getBoundingClientRect();
+  const vb    = viewBounds();
+  const sz    = cellSize();
+  const col   = Math.floor((px - (br.left - ar.left)) / sz);
+  const row   = Math.floor((py - (br.top  - ar.top )) / sz);
+  const cols  = vb.maxX - vb.minX + 1;
+  const rows  = vb.maxY - vb.minY + 1;
+  if (col < 0 || row < 0 || col >= cols || row >= rows) return null;
+  return { x: col + vb.minX, y: row + vb.minY };
+}
+
+// ── SVG arrow renderer ────────────────────────────────────
+function buildGrowArrowSVG(gx1, gy1, gx2, gy2, sz, preview) {
+  const c1  = getCellCenter(gx1, gy1);
+  const c2  = getCellCenter(gx2, gy2);
+  const dx  = c2.x - c1.x, dy = c2.y - c1.y;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 1) return '';
+
+  const ux = dx/len, uy = dy/len;
+  const px = -uy,    py =  ux;
+
+  const sw       = Math.max(3, sz * 0.16);
+  const startOff = sz * 0.28;
+  const headLen  = sz * 0.40;
+  const headWid  = sz * 0.28;
+
+  const lx1 = c1.x + ux * startOff;
+  const ly1 = c1.y + uy * startOff;
+  const lx2 = c2.x - ux * headLen;
+  const ly2 = c2.y - uy * headLen;
+
+  const tip = `${c2.x.toFixed(1)},${c2.y.toFixed(1)}`;
+  const bl  = `${(lx2 + px*headWid).toFixed(1)},${(ly2 + py*headWid).toFixed(1)}`;
+  const br2 = `${(lx2 - px*headWid).toFixed(1)},${(ly2 - py*headWid).toFixed(1)}`;
+  const col = '#38c870'; // --green
+  const op  = preview ? 0.4 : 0.78;
+
+  return `
+    <line x1="${lx1.toFixed(1)}" y1="${ly1.toFixed(1)}"
+          x2="${lx2.toFixed(1)}" y2="${ly2.toFixed(1)}"
+          stroke="${col}" stroke-width="${sw.toFixed(1)}"
+          stroke-linecap="round" opacity="${op}"/>
+    <polygon points="${tip} ${bl} ${br2}" fill="${col}" opacity="${op}"/>`;
+}
+
+function renderAnnoSVG() {
+  const svg = document.getElementById('anno-svg');
+  if (!svg) return;
+  if (!annotateMode) { svg.innerHTML = ''; return; }
+
+  const sz  = cellSize();
+  let html  = '';
+
+  for (const g of annotations.grows) {
+    html += buildGrowArrowSVG(g.x1, g.y1, g.x2, g.y2, sz, false);
+  }
+  if (annoPreview) {
+    html += buildGrowArrowSVG(
+      annoPreview.x1, annoPreview.y1, annoPreview.x2, annoPreview.y2, sz, true
+    );
+  }
+
+  svg.innerHTML = html;
+}
+
+// ── Event wiring ──────────────────────────────────────────
+function initAnnotations() {
+  const barea = document.querySelector('.barea');
+
+  barea.addEventListener('contextmenu', e => {
+    if (annotateMode) e.preventDefault();
+  });
+
+  barea.addEventListener('mousedown', e => {
+    if (!annotateMode) return;
+    const ar    = barea.getBoundingClientRect();
+    const coord = getGridCoordAt(e.clientX - ar.left, e.clientY - ar.top);
+
+    if (e.button === 2) {
+      e.preventDefault();
+      if (coord) toggleAnnoNo(coord.x, coord.y);
+    } else if (e.button === 0) {
+      e.preventDefault();
+      annoDragStart = coord;
+      annoDragging  = false;
+    }
+  });
+
+  barea.addEventListener('mousemove', e => {
+    if (!annotateMode || !annoDragStart) return;
+    const ar    = barea.getBoundingClientRect();
+    const coord = getGridCoordAt(e.clientX - ar.left, e.clientY - ar.top);
+    if (!coord) return;
+
+    if (coord.x !== annoDragStart.x || coord.y !== annoDragStart.y) {
+      annoDragging = true;
+      annoPreview  = { x1: annoDragStart.x, y1: annoDragStart.y, x2: coord.x, y2: coord.y };
+      renderAnnoSVG();
+    }
+  });
+
+  barea.addEventListener('mouseup', e => {
+    if (!annotateMode || e.button !== 0) return;
+    const ar    = barea.getBoundingClientRect();
+    const coord = getGridCoordAt(e.clientX - ar.left, e.clientY - ar.top);
+
+    if (!annoDragging && annoDragStart) {
+      // Click → tic annotation
+      toggleAnnoTic(annoDragStart.x, annoDragStart.y);
+    } else if (annoDragging && annoDragStart && coord) {
+      if (coord.x !== annoDragStart.x || coord.y !== annoDragStart.y) {
+        // Drag → grow arrow
+        toggleAnnoGrow(annoDragStart.x, annoDragStart.y, coord.x, coord.y);
+      }
+    }
+
+    annoDragStart = null;
+    annoDragging  = false;
+    annoPreview   = null;
+    renderAnnoSVG();
+    renderBoard();
+  });
+}
+
+  
 // ═══════════════════════════════════════════════════════════════
 //  KEY HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -1903,6 +2192,7 @@ function renderBoard() {
   for (let y=vb.minY;y<=vb.maxY;y++)
     for (let x=vb.minX;x<=vb.maxX;x++)
       board.appendChild(buildCell(x,y,sz));
+  renderAnnoSVG();
 }
 
 function buildCell(x,y,sz) {
@@ -1940,6 +2230,21 @@ function buildCell(x,y,sz) {
     else if (phase==='no' && canNo(x,y)) div.classList.add('h-no');
   }
   div.addEventListener('click', ()=>handleClick(x,y));
+  if (annotateMode) {
+    const k = K(x, y);
+    if (annotations.tics[k]) {
+      const ghost = document.createElement('div');
+      ghost.className = `anno-tic ${annotations.tics[k] === 'X' ? 'x' : 'o'}`;
+      ghost.textContent = annotations.tics[k].toLowerCase();
+      ghost.style.fontSize = Math.round(sz * 0.52) + 'px';
+      div.appendChild(ghost);
+    }
+    if (annotations.nos[k]) {
+      const fakeNo = document.createElement('div');
+      fakeNo.className = 'anno-no';
+      div.appendChild(fakeNo);
+    }
+  }
   return div;
 }
 
@@ -1982,6 +2287,7 @@ function isMyTurn() {
 }
 
 function handleClick(x,y) {
+  if (annotateMode) return;
   if (over) return;
   if (isOnline&&!isMyTurn()) return;
   if      (phase==='tic')      doTic(x,y);
@@ -2206,9 +2512,10 @@ document.addEventListener('keydown', e => {
     }
   }
 });
-
+  
 initAuth();
 resetGame();
+initAnnotations();
 checkActiveGameBanner();
 </script>
 </body>
