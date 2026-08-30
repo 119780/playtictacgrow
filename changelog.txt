@@ -17,3 +17,6 @@ Spectators
 - Friends can spectate their friends
 - Added spectate button in the friends list
 - Spectators can watch the game but cannot place anything
+
+See the 3-in-a-row
+- Added an ending that draws a line through the winning 3 in a row
