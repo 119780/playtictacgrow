@@ -10,7 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#191919;--panel:#212121;--panel2:#2a2a2a;--border:#363636;--border2:#484848;
-  --x:#c83838;--o:#2090b0;--gold:#f0c040;--green:#38c870;--text:#d6d2cc;--muted:#747070;
+  --x:#c83838;--o:#2090b0;--i:#ffffff;--gold:#f0c040;--green:#38c870;--text:#d6d2cc;--muted:#747070;
   --box-b:#dbceac;--box-a:#cbb792;--grid-b:#2d2d2d;--grid-a:#242424;
 }
 body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
@@ -387,6 +387,51 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .toggle-switch.on::after{transform:translateX(18px);background:#0a0900}
 .toggle-switch:disabled{opacity:.4;cursor:not-allowed}
 
+/* ── TIME CONTROL ── */
+.time-control-block{margin-bottom:4px}
+.time-control-label{font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:6px;padding:0 2px}
+.time-control-row{display:flex;gap:6px}
+.tc-btn{
+  flex:1;padding:9px 4px;border-radius:9px;border:1.5px solid var(--border);
+  background:var(--panel2);color:var(--muted);font-size:.76rem;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.tc-btn:hover{border-color:var(--border2);color:var(--text)}
+.tc-btn.sel{border-color:var(--gold);background:rgba(240,192,64,.1);color:var(--gold)}
+
+/* ── CHESS CLOCKS ── */
+.pclock{
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;
+  color:var(--muted);margin-top:2px;letter-spacing:.02em;
+}
+.pclock.ticking{color:var(--gold)}
+.pclock.low{color:var(--x);animation:clockPulse 1s infinite}
+@keyframes clockPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── DRAW BUTTON ── */
+.draw-btn{
+  width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border2);
+  background:rgba(255,255,255,.04);color:var(--text);font-size:.77rem;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .15s;margin-bottom:6px;
+}
+.draw-btn:hover:not(:disabled){background:rgba(255,255,255,.09)}
+.draw-btn:disabled{opacity:.5;cursor:not-allowed}
+.draw-btn.offered-to-me{border-color:var(--gold);color:var(--gold);background:rgba(240,192,64,.1);animation:clockPulse 1.2s infinite}
+
+/* ── SPECTATOR MODE ── */
+.spectate-banner{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:20;width:min(280px,calc(100% - 32px));background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:10px 13px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.spectate-banner-title{font-size:.8rem;font-weight:700;color:var(--text)}
+.spectate-banner-sub{font-size:.7rem;color:var(--muted);margin-top:2px}
+.friend-btn.spectate{background:rgba(32,144,176,.18);color:var(--o)}
+.friend-btn.play:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── WINNING LINE ── */
+#win-line-svg{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:visible}
+.win-line-path{
+  stroke:var(--gold);stroke-width:5;stroke-linecap:round;
+  filter:drop-shadow(0 0 6px rgba(240,192,64,.8));
+}
+
 /* ── SETTINGS / FRIENDS SCREENS ── */
 .dash-h2{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:12px}
 .settings-field{display:flex;flex-direction:column;gap:6px;margin-bottom:4px}
@@ -447,48 +492,24 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
 
-/* Ghost tic symbol overlay */
 .anno-tic {
-  position: absolute;
-  opacity: 0.38;
-  z-index: 5;
-  pointer-events: none;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  line-height: 1;
+  position:absolute; opacity:0.38; z-index:5; pointer-events:none;
+  font-family:'JetBrains Mono',monospace; font-weight:700; line-height:1;
 }
-.anno-tic.x { color: var(--x); }
-.anno-tic.o { color: var(--o); }
+.anno-tic.x { color:var(--x) }
+.anno-tic.o { color:var(--o) }
+.anno-tic.i { color:var(--i) }
 
-/* Fake-No overlay — translucent version of your blk-fill */
 .anno-no {
-  position: absolute;
-  inset: 3px;
-  background-image: url('scribble.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  opacity: 0.38;
-  z-index: 5;
-  pointer-events: none;
-  /* tint it red so it reads differently from a real blackout */
-  filter: sepia(1) saturate(3) hue-rotate(-20deg);
+  position:absolute; inset:3px;
+  background-image:url('scribble.png');
+  background-size:contain; background-repeat:no-repeat; background-position:center;
+  opacity:0.38; z-index:5; pointer-events:none;
+  filter:sepia(1) saturate(3) hue-rotate(-20deg);
 }
-
-/* Annotate mode active state on the board */
-.barea.annotate-active { cursor: crosshair; }
-
-/* Active annotate button */
-#annotate-btn.sel {
-  border-color: var(--gold);
-  background: rgba(240,192,64,.08);
-}
-
-/* Picker button active state */
-.anno-sym-active {
-  opacity: 1 !important;
-  outline: 2px solid #fff4;
-}
+.barea.annotate-active { cursor:crosshair }
+#annotate-btn.sel { border-color:var(--gold); background:rgba(240,192,64,.08) }
+.anno-sym-active { outline:2px solid rgba(255,255,255,.25) }
 
 #anno-popup {
   position: fixed;
@@ -517,9 +538,16 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .anno-pop-btn.x:hover { background: rgba(var(--x-rgb), .15) }
 .anno-pop-btn.o { color: var(--o) }
 .anno-pop-btn.o:hover { background: rgba(var(--o-rgb), .15) }
-  
+.anno-pop-btn.i { color: #ffffff }
+.anno-pop-btn.i:hover { background: rgba(var(--i-rgb), .15) }
 </style>
 </head>
+
+<div id="anno-popup" style="display:none">
+  <button class="anno-pop-btn x" onclick="commitAnnoTic('X')">x</button>
+  <button class="anno-pop-btn i" onclick="commitAnnoTic('!')">!</button>
+  <button class="anno-pop-btn o" onclick="commitAnnoTic('O')">o</button>
+</div>
 
 <body>
 
@@ -652,11 +680,20 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         </div>
         <button class="toggle-switch" id="ranked-toggle" onclick="toggleRanked()" disabled></button>
       </div>
+      <div class="time-control-block">
+        <div class="time-control-label">Time per player</div>
+        <div class="time-control-row" id="time-control-row">
+          <button class="tc-btn" data-tc="1" onclick="setTimeControl('1')">Bullet<br>(1 min)</button>
+          <button class="tc-btn" data-tc="5" onclick="setTimeControl('5')">Blitz<br>(5 min)</button>
+          <button class="tc-btn sel" data-tc="10" onclick="setTimeControl('10')">Rapid<br>(10 min)</button>
+          <button class="tc-btn" data-tc="unlimited" onclick="setTimeControl('unlimited')">Unlimited</button>
+        </div>
+      </div>
       <div class="l-action-row">
         <button class="lbtn-pri" id="host-setup-btn" onclick="startHosting()">Create Room</button>
         <button class="lbtn-sec" onclick="showChooseScreen()">Back</button>
       </div>
-      <div class="l-note">Ranked matches will factor into a future ladder ranking — not scored yet, just tagged.</div>
+      <div class="l-note">Ranked 10-minute matches affect your leaderboard position. Other time settings are unranked for the ladder.</div>
     </div>
 
     <div class="lscreen" id="ls-host">
@@ -786,12 +823,12 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   <aside class="side">
     <div id="p1c" class="pcard px active">
       <div class="psym">x</div>
-      <div class="pinfo"><div class="plabel" id="p1name">Player 1</div><div class="pname">Crosses</div></div>
+      <div class="pinfo"><div class="plabel" id="p1name">Player 1</div><div class="pname">Crosses</div><div class="pclock" id="p1clock" style="display:none">--:--</div></div>
       <div class="dot" id="d1"></div>
     </div>
     <div id="p2c" class="pcard po">
       <div class="psym">o</div>
-      <div class="pinfo"><div class="plabel" id="p2name">Player 2</div><div class="pname">Noughts</div></div>
+      <div class="pinfo"><div class="plabel" id="p2name">Player 2</div><div class="pname">Noughts</div><div class="pclock" id="p2clock" style="display:none">--:--</div></div>
       <div class="dot" id="d2" style="display:none"></div>
     </div>
     <div class="div"></div>
@@ -818,26 +855,32 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div id="ctrl-cancel" style="display:none">
       <button class="btn-can-full" onclick="cancelAction()">Cancel</button>
     </div>
-    <div class="div"></div>
-  <div class="slabel">Annotate</div>
-
-  <button id="annotate-btn" class="abtn" onclick="toggleAnnotateMode()">
-    <div>
-      <div class="atitle">Annotate Mode</div>
-      <div class="adesc">Plan moves visually</div>
+        <div class="div"></div>
+    <div class="slabel">Annotate</div>
+    <button id="annotate-btn" class="abtn" onclick="toggleAnnotateMode()">
+      <div>
+        <div class="atitle">Annotate Mode</div>
+        <div class="adesc">Plan moves visually</div>
+      </div>
+    </button>
+    <div id="anno-picker" style="display:none;gap:6px" class="ctrl-row">
+      <button class="btn-can" onclick="clearAnnotations()">Clear</button>
     </div>
-  </button>
-
-  <!-- Symbol picker — only visible in annotate mode -->
-  <div id="anno-picker" style="display:none;gap:6px" class="ctrl-row">
-    <button class="btn-can" onclick="clearAnnotations()">Clear</button>
-  </div>
   </aside>
 
   <main class="barea" id="barea">
+    <div class="spectate-banner" id="spectate-banner" style="display:none">
+      <div class="spectate-banner-title">Spectating</div>
+      <div class="spectate-banner-sub" id="spectate-banner-sub">— vs —</div>
+      <button class="lbtn-sec" style="margin-top:8px;width:100%" onclick="leaveSpectate()">Stop Spectating</button>
+    </div>
     <div id="board"></div>
-    <svg id="anno-svg" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:10"></svg>
-    
+    <svg id="anno-svg"
+    	xmlns="http://www.w3.org/2000/svg"
+    	style="position:absolute;inset:0;width:100%;height:100%;
+			pointer-events:none;overflow:visible;z-index:10">
+	</svg>
+    <svg id="win-line-svg" style="display:none"><line class="win-line-path" id="win-line-path" x1="0" y1="0" x2="0" y2="0"/></svg>
     <div class="wov" id="wov">
       <div class="wcard">
         <div class="wtitle" id="wtitle">You Win</div>
@@ -857,6 +900,10 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
           <button class="wagain" onclick="resetGame()">Play Again</button>
           <button class="wgohome" onclick="goHome()">Go to Dashboard</button>
         </div>
+        <!-- Spectator view (read-only) -->
+        <div class="win-btns" id="win-spectator" style="display:none">
+          <button class="wgohome" onclick="leaveSpectate()">Stop Spectating</button>
+        </div>
       </div>
     </div>
   </main>
@@ -873,6 +920,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
       <strong>WIN</strong>Three symbols in a row — horizontal, vertical, or diagonal. Blacked-out squares break any line.
     </div>
     <div style="flex:1"></div>
+    <button class="draw-btn" id="draw-btn" onclick="handleDrawClick()" style="display:none">Offer Draw</button>
     <button class="forfeit-btn" id="forfeit-btn" onclick="confirmForfeit()" style="display:none">Forfeit Game</button>
     <button class="changelog-btn" onclick="openChangelog()">What's New</button>
     <div style="text-align:center;font-size:.7rem;color:var(--muted)">TicTacGrow · Local &amp; Online</div>
@@ -888,6 +936,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <button class="mob-menu-btn" onclick="toggleMobMenu()">⋯</button>
   </div>
   <div class="mob-menu" id="mob-menu">
+    <button id="mob-draw-btn" onclick="toggleMobMenu();handleDrawClick()" style="display:none">Offer Draw</button>
     <button onclick="toggleMobMenu();confirmForfeit()">Forfeit Game</button>
     <button onclick="toggleMobMenu();openChangelog()">What's New</button>
   </div>
@@ -1185,6 +1234,35 @@ async function fetchAcceptedFriends() {
   ].filter(Boolean);
 }
 
+// One-off lookup (via a short-lived WS connection, not the game socket)
+// of which friends are currently in a live game, so their row can show
+// a Spectate button and a grayed-out Play button instead. This is a
+// point-in-time check, not live presence — refreshed each time a
+// friends list is opened/rendered.
+let friendMatchStatuses = {}; // userId -> roomCode
+
+function refreshFriendMatchStatuses(userIds) {
+  return new Promise((resolve) => {
+    if (!userIds || userIds.length === 0) { friendMatchStatuses = {}; resolve(); return; }
+    let tempWs;
+    try { tempWs = new WebSocket(SERVER_URL); } catch (e) { resolve(); return; }
+    const done = () => { try { tempWs.close(); } catch (e) {} resolve(); };
+    const timeout = setTimeout(done, 4000);
+    tempWs.onopen = () => tempWs.send(JSON.stringify({ type:'check-friends', ids:userIds, token: currentSession?.access_token || null }));
+    tempWs.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'friends-status') {
+          friendMatchStatuses = data.statuses || {};
+          clearTimeout(timeout);
+          done();
+        }
+      } catch (err) {}
+    };
+    tempWs.onerror = () => { clearTimeout(timeout); resolve(); };
+  });
+}
+
 async function loadFriends() {
   if (!supa || !currentUser) return;
   try {
@@ -1200,9 +1278,10 @@ async function loadFriends() {
     }
 
     const friends = await fetchAcceptedFriends();
+    await refreshFriendMatchStatuses(friends.map(f => f.id));
     const listEl = document.getElementById('friends-list');
     listEl.innerHTML = friends.length
-      ? friends.map(f => friendRowHtml(f, null, false)).join('')
+      ? friends.map(f => friendRowHtml(f, null, false, friendMatchStatuses[f.id])).join('')
       : '<div class="friends-empty">No friends yet — add one with their code above.</div>';
 
     sessionStorage.setItem('ttg_friend_req_count', String((incoming||[]).length));
@@ -1211,7 +1290,7 @@ async function loadFriends() {
 }
 
 // Compact invite list shown directly on the Play hub — same data, no
-// accept/decline noise, just names with a Play button.
+// accept/decline noise, just names with a Play/Spectate button.
 async function loadPlayFriends() {
   const block = document.getElementById('play-friends-block');
   const list  = document.getElementById('play-friends-list');
@@ -1219,21 +1298,28 @@ async function loadPlayFriends() {
   try {
     const friends = await fetchAcceptedFriends();
     if (friends.length === 0) { block.style.display = 'none'; return; }
+    await refreshFriendMatchStatuses(friends.map(f => f.id));
     block.style.display = 'block';
-    list.innerHTML = friends.map(f => friendRowHtml(f, null, false)).join('');
+    list.innerHTML = friends.map(f => friendRowHtml(f, null, false, friendMatchStatuses[f.id])).join('');
   } catch (e) { block.style.display = 'none'; }
 }
 
-function friendRowHtml(person, friendshipId, isRequest) {
+function friendRowHtml(person, friendshipId, isRequest, inMatchRoomCode) {
   if (!person) return '';
   const initial = (person.display_name || '?').charAt(0).toUpperCase();
   const avatarHtml = person.avatar_url
     ? `<img class="friend-avatar" src="${person.avatar_url}">`
     : `<div class="friend-avatar-fallback">${initial}</div>`;
-  const actionsHtml = isRequest
-    ? `<button class="friend-btn accept" onclick="respondFriendRequest('${friendshipId}',true)">Accept</button>
-       <button class="friend-btn decline" onclick="respondFriendRequest('${friendshipId}',false)">Decline</button>`
-    : `<button class="friend-btn play" onclick="inviteFriend('${person.id}','${escapeHtml(person.display_name||'Friend').replace(/'/g,"\\'")}')">Play</button>`;
+  let actionsHtml;
+  if (isRequest) {
+    actionsHtml = `<button class="friend-btn accept" onclick="respondFriendRequest('${friendshipId}',true)">Accept</button>
+       <button class="friend-btn decline" onclick="respondFriendRequest('${friendshipId}',false)">Decline</button>`;
+  } else if (inMatchRoomCode) {
+    actionsHtml = `<button class="friend-btn play" disabled>Play</button>
+       <button class="friend-btn spectate" onclick="spectateRoom('${inMatchRoomCode}')">Spectate</button>`;
+  } else {
+    actionsHtml = `<button class="friend-btn play" onclick="inviteFriend('${person.id}','${escapeHtml(person.display_name||'Friend').replace(/'/g,"\\'")}')">Play</button>`;
+  }
   return `<div class="friend-row">${avatarHtml}<div class="friend-name">${escapeHtml(person.display_name||'Player')}</div>${actionsHtml}</div>`;
 }
 
@@ -1432,8 +1518,25 @@ function dismissGuestNudge() {
 // ═══════════════════════════════════════════════════════════════
 let ws       = null;
 let isOnline = false;
-let myRole   = null;   // 'host' | 'guest'
+let myRole   = null;   // 'host' | 'guest' | 'spectator'
 let roomCode = null;
+
+// ── Spectating ──
+let isSpectating = false;
+
+// ── Chess clocks ──
+let timeControlMs  = null;
+let clocks          = { host:null, guest:null };
+let turnStartedAt  = null;
+let gameTickHandle = null;
+
+// ── Draw offers ──
+let drawOfferState   = 'idle'; // 'idle' | 'sent' | 'received' | 'cooldown'
+let drawOfferExpiresAt = 0;
+let drawCooldownUntil  = 0;
+
+// ── Time control selection (host-setup screen) ──
+let selectedTimeControl = 'unlimited';
 
 // ═══════════════════════════════════════════════════════════════
 //  WEBSOCKET LAYER
@@ -1498,36 +1601,42 @@ function handleServerMessage(data) {
       break;
 
     case 'opponent-joined':
-      myRole = 'host'; isOnline = true;
+      myRole = 'host'; isOnline = true; isSpectating = false;
       document.getElementById('p1name').textContent = 'You';
       document.getElementById('p2name').textContent = data.guestName || 'Opponent';
       updateConnBadge('online');
       hideLobby();
+      syncClocks(data);
       applyServerState(data.state, null, true);
       saveActiveGame(roomCode, 'host', data.guestName, false);
+      startClockTick();
       logNet('Connected — you are x (P1). ' + (data.state.curP===1 ? 'You go first.' : 'Opponent goes first.'));
       break;
 
     case 'joined':
-      myRole = 'guest'; isOnline = true;
+      myRole = 'guest'; isOnline = true; isSpectating = false;
       document.getElementById('p1name').textContent = data.hostName || 'Opponent';
       document.getElementById('p2name').textContent = 'You';
       updateConnBadge('online');
       hideLobby();
+      syncClocks(data);
       applyServerState(data.state, null, true);
       saveActiveGame(data.code || roomCode, 'guest', data.hostName, false);
+      startClockTick();
       logNet('Connected — you are o (P2). ' + (data.state.curP===2 ? 'You go first.' : 'Opponent goes first.'));
       break;
 
     case 'match-found':
-      myRole = data.role; isOnline = true; mmActive = false; updateMMUI();
+      myRole = data.role; isOnline = true; isSpectating = false; mmActive = false; updateMMUI();
       roomCode = data.code;
       document.getElementById('p1name').textContent = data.role==='host' ? 'You' : (data.opponentName||'Opponent');
       document.getElementById('p2name').textContent = data.role==='guest' ? 'You' : (data.opponentName||'Opponent');
       updateConnBadge('online');
       hideLobby();
+      syncClocks(data);
       applyServerState(data.state, null, true);
       saveActiveGame(data.code, data.role, data.opponentName, data.ranked);
+      startClockTick();
       logNet(`Matched with ${data.opponentName || 'an opponent'}${data.ranked ? ' — ranked' : ''}.`);
       break;
 
@@ -1544,14 +1653,16 @@ function handleServerMessage(data) {
       break;
 
     case 'rejoined':
-      myRole = data.role; isOnline = true; attemptingResume = false;
+      myRole = data.role; isOnline = true; isSpectating = false; attemptingResume = false;
       roomCode = data.code || roomCode;
       document.getElementById('p1name').textContent = data.role==='host' ? 'You' : (data.opponentName||'Opponent');
       document.getElementById('p2name').textContent = data.role==='guest' ? 'You' : (data.opponentName||'Opponent');
       updateConnBadge('online');
       hideLobby();
+      syncClocks(data);
       applyServerState(data.state, null, true);
       saveActiveGame(roomCode, data.role, data.opponentName, data.ranked);
+      startClockTick();
       logNet('Reconnected to your game.');
       break;
 
@@ -1564,6 +1675,7 @@ function handleServerMessage(data) {
       break;
 
     case 'state':
+      syncClocks(data);
       applyServerState(data.state, data.move, false);
       break;
 
@@ -1571,6 +1683,9 @@ function handleServerMessage(data) {
       document.getElementById('wov').classList.remove('show');
       document.getElementById('log').innerHTML = `<div class="lentry">New game — Player ${data.state.curP} goes first.</div>`;
       logNet('Online — ' + (myRole==='host' ? 'you are x (P1).' : 'you are o (P2).'));
+      hideWinLine();
+      drawOfferState = 'idle'; drawCooldownUntil = 0;
+      syncClocks(data);
       applyServerState(data.state, null, true);
       break;
 
@@ -1578,8 +1693,83 @@ function handleServerMessage(data) {
       over = true; phase = 'idle'; showCtrl('none');
       ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
       renderBoard();
+      stopClockTick();
       clearActiveGame();
       showWinScreen(true, 'Opponent Resigned', 'You win by resignation');
+      break;
+
+    case 'timeout': {
+      over = true; phase = 'idle'; showCtrl('none');
+      ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
+      renderBoard();
+      stopClockTick();
+      clearActiveGame();
+      const iLost = data.loserRole === myRole;
+      showWinScreen(!iLost, iLost ? 'You Ran Out of Time' : 'Opponent Ran Out of Time', iLost ? 'Opponent wins on time' : 'You win on time');
+      break;
+    }
+
+    case 'draw-offer-sent':
+      drawOfferState = 'sent';
+      drawOfferExpiresAt = data.expiresAt;
+      renderDrawButton();
+      break;
+
+    case 'draw-offered':
+      drawOfferState = 'received';
+      drawOfferExpiresAt = data.expiresAt;
+      renderDrawButton();
+      showToast('Opponent offered a draw');
+      break;
+
+    case 'draw-expired':
+      drawOfferState = 'cooldown';
+      drawCooldownUntil = Date.now() + (data.cooldownMs || 30000);
+      renderDrawButton();
+      break;
+
+    case 'draw-agreed':
+      drawOfferState = 'idle';
+      stopClockTick();
+      clearActiveGame();
+      applyServerState(data.state, null, true, {suppressWinScreen:true});
+      showWinScreen(false, "Draw", 'No winner this round');
+      break;
+
+    case 'spectating':
+      isSpectating = true; isOnline = true; myRole = 'spectator'; roomCode = null;
+      document.getElementById('p1name').textContent = data.hostName || 'Player 1';
+      document.getElementById('p2name').textContent = data.guestName || 'Player 2';
+      document.getElementById('spectate-banner').style.display = 'block';
+      document.getElementById('spectate-banner-sub').textContent = `${data.hostName||'Player 1'} vs ${data.guestName||'Player 2'}`;
+      updateConnBadge('online');
+      hideLobby();
+      syncClocks(data);
+      applyServerState(data.state, null, true);
+      startClockTick();
+      logNet(`Spectating ${data.hostName||'Player 1'} vs ${data.guestName||'Player 2'}`);
+      break;
+
+    case 'game-ended': {
+      if (!isSpectating) break;
+      over = true;
+      stopClockTick();
+      const winnerName = data.winnerRole === 'host'
+        ? document.getElementById('p1name').textContent
+        : document.getElementById('p2name').textContent;
+      const reasonText = data.reason==='win' ? 'Three in a row' : data.reason==='resign' ? 'By resignation' : data.reason==='timeout' ? 'On time' : '';
+      document.getElementById('wtitle').textContent = data.reason==='draw' ? "It's a Draw" : `${winnerName} Wins`;
+      document.getElementById('wsub').textContent = data.reason==='draw' ? 'No winner this round' : reasonText;
+      ['win-online','win-resign','win-local','win-spectator'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.style.display = 'none';
+      });
+      document.getElementById('win-spectator').style.display = 'flex';
+      document.getElementById('wov').classList.add('show');
+      break;
+    }
+
+    case 'spectator-kicked':
+      leaveSpectate();
       break;
 
     case 'rematch-status': {
@@ -1618,7 +1808,8 @@ function handleServerMessage(data) {
 }
 
 // Apply authoritative state from server
-function applyServerState(state, move, isInit) {
+function applyServerState(state, move, isInit, opts) {
+  opts = opts || {};
   cells    = state.cells;
   curP     = state.curP;
   over     = state.over;
@@ -1629,9 +1820,18 @@ function applyServerState(state, move, isInit) {
   ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).classList.remove('sel'));
   showCtrl('none');
   if (!isInit && move) logMove(move);
-  if (over) showWinScreen();
   updatePlayerUI();
   renderBoard();
+  if (over && !opts.suppressWinScreen) {
+    if (!isInit && winCells.length === 3) {
+      // Let the player actually see the gold highlight + line before
+      // the win/lose overlay covers the board.
+      drawWinLine(winCells);
+      setTimeout(() => showWinScreen(), 1100);
+    } else {
+      showWinScreen();
+    }
+  }
 }
 
 function showWinScreen(isResign=false, title=null, sub=null) {
@@ -1728,11 +1928,13 @@ let pendingInviteTarget = null; // {id, name} — set when hosting via a friend 
 
 function prepareHostSetupScreen() {
   wantsRanked = false;
+  selectedTimeControl = '10';
   const toggle = document.getElementById('ranked-toggle');
   const desc   = document.getElementById('ranked-toggle-desc');
   const title  = document.getElementById('host-setup-title');
   const btn    = document.getElementById('host-setup-btn');
   toggle.classList.remove('on');
+  document.querySelectorAll('#time-control-row .tc-btn').forEach(b => b.classList.toggle('sel', b.dataset.tc === '10'));
   if (currentUser) {
     toggle.disabled = false;
     desc.textContent = 'Tag this match for the future ladder ranking';
@@ -1749,6 +1951,11 @@ function prepareHostSetupScreen() {
     btn.textContent = 'Create Room';
   }
   showScreen('ls-host-setup');
+}
+
+function setTimeControl(key) {
+  selectedTimeControl = key;
+  document.querySelectorAll('#time-control-row .tc-btn').forEach(b => b.classList.toggle('sel', b.dataset.tc === key));
 }
 
 function showHostScreen() {
@@ -1768,7 +1975,7 @@ function startHosting() {
   document.getElementById('copy-btn').classList.remove('copied');
   document.getElementById('wait-text').textContent = 'Connecting to server…';
   updateConnBadge('waiting');
-  connectWS(() => sendToServer({ type:'create', token: currentSession?.access_token || null, ranked: wantsRanked }));
+  connectWS(() => sendToServer({ type:'create', token: currentSession?.access_token || null, ranked: wantsRanked, timeControl: selectedTimeControl }));
 }
 
 function showJoinScreen() {
@@ -1780,7 +1987,9 @@ function showJoinScreen() {
 
 function startLocal() {
   if (ws) { try { ws.close(); } catch(e){} ws=null; }
-  isOnline=false; myRole=null;
+  isOnline=false; myRole=null; isSpectating=false;
+  timeControlMs=null; clocks={host:null,guest:null}; turnStartedAt=null;
+  stopClockTick(); hideWinLine();
   clearActiveGame(); // deliberately choosing local abandons any pending online reconnect
   hideLobby();
   resetGame();
@@ -1870,20 +2079,26 @@ function resetJoinBtn() {
 function onDisconnect() {
   // Unexpected drop (not a clean resign/leave) — just return to lobby
   if (!isOnline) return;
-  isOnline = false;
+  isOnline = false; isSpectating = false;
+  stopClockTick();
+  hideWinLine();
   updateConnBadge();
   showToast('Connection lost');
   showLobby();
 }
 
 function goHome() {
+  if (isSpectating) { leaveSpectate(); return; }
   if (isOnline) {
     // Send resign or leave before closing so server notifies opponent
     sendToServer(over ? {type:'leave'} : {type:'resign'});
     isOnline = false; // prevent onDisconnect re-entry
     if (ws) { if (ws._hb) clearInterval(ws._hb); try { ws.close(); } catch(e){} ws = null; }
   }
+  stopClockTick();
+  hideWinLine();
   clearActiveGame(); // deliberate exit — no reconnect needed
+  document.getElementById('spectate-banner').style.display = 'none';
   document.getElementById('wov').classList.remove('show');
   showLobby();
 }
@@ -1892,6 +2107,7 @@ function goHome() {
 // route here. Confirms first so a stray tap doesn't cost a game, then
 // reuses goHome()'s existing resign-then-navigate logic.
 function confirmForfeit() {
+  if (isSpectating) { leaveSpectate(); return; }
   if (over || !isOnline) { goHome(); return; } // nothing live to forfeit, just navigate
   if (confirm('Forfeit this game? Your opponent will win.')) goHome();
 }
@@ -1952,9 +2168,13 @@ function toggleAnnotateMode() {
   renderBoard();
 }
 
+
+
 function updateAnnoUI() {
   const btn    = document.getElementById('annotate-btn');
   const picker = document.getElementById('anno-picker');
+  const xbtn   = document.getElementById('anno-x-btn');
+  const obtn   = document.getElementById('anno-o-btn');
   const barea  = document.querySelector('.barea');
 
   btn?.classList.toggle('sel', annotateMode);
@@ -1975,56 +2195,6 @@ function clearAnnotations() {
   annotations.grows = [];
   annoPreview = null;
   renderAnnoSVG();
-  renderBoard();
-}
-
-let annoPopupTarget = null; // {x,y} pending a symbol choice
-
-function showAnnoPopup(x, y, clientX, clientY) {
-  annoPopupTarget = { x, y };
-  const pop = document.getElementById('anno-popup');
-
-  // Show it offscreen first so we can measure its size
-  pop.style.left = '-9999px';
-  pop.style.top  = '-9999px';
-  pop.style.display = 'flex';
-
-  const popW = pop.offsetWidth;
-  const popH = pop.offsetHeight;
-
-  // Get the cell's center in viewport coordinates
-  const barea  = document.querySelector('.barea');
-  const ar     = barea.getBoundingClientRect();
-  const center = getCellCenter(x, y);
-  const viewX  = ar.left + center.x;
-  const viewY  = ar.top  + center.y;
-
-  // Place popup centered on the cell, clamped to viewport edges
-  const px = Math.max(4, Math.min(viewX - popW / 2, window.innerWidth  - popW - 4));
-  const py = Math.max(4, Math.min(viewY - popH / 2, window.innerHeight - popH - 4));
-
-  pop.style.left = px + 'px';
-  pop.style.top  = py + 'px';
-
-  setTimeout(() => document.addEventListener('mousedown', hideAnnoPopup, { once: true }), 0);
-}
-
-function hideAnnoPopup(e) {
-  // Don't dismiss if the click was on the popup itself
-  const pop = document.getElementById('anno-popup');
-  if (e && pop.contains(e.target)) return;
-  pop.style.display = 'none';
-  annoPopupTarget = null;
-}
-
-function commitAnnoTic(sym) {
-  if (!annoPopupTarget) return;
-  const k = K(annoPopupTarget.x, annoPopupTarget.y);
-  // Toggle: same symbol again → remove it
-  if (annotations.tics[k] === sym) delete annotations.tics[k];
-  else annotations.tics[k] = sym;
-  document.getElementById('anno-popup').style.display = 'none';
-  annoPopupTarget = null;
   renderBoard();
 }
 
@@ -2178,15 +2348,14 @@ function initAnnotations() {
     const coord = getGridCoordAt(e.clientX - ar.left, e.clientY - ar.top);
 
     if (!annoDragging && annoDragStart) {
-      const k = K(annoDragStart.x, annoDragStart.y);
-      if (annotations.tics[k]) {
-        // Already ghost-tic'd — just clear it, no popup
-        delete annotations.tics[k];
-        renderBoard();
-      } else {
-        showAnnoPopup(annoDragStart.x, annoDragStart.y, e.clientX, e.clientY);
-      }
-    } else if (annoDragging && annoDragStart && coord) {
+  		const k = K(annoDragStart.x, annoDragStart.y);
+  		if (annotations.tics[k]) {
+    		delete annotations.tics[k];
+    		renderBoard();
+  		} else {
+    		showAnnoPopup(annoDragStart.x, annoDragStart.y, e.clientX, e.clientY);
+  		}
+	} else if (annoDragging && annoDragStart && coord) {
       if (coord.x !== annoDragStart.x || coord.y !== annoDragStart.y) {
         // Drag → grow arrow
         toggleAnnoGrow(annoDragStart.x, annoDragStart.y, coord.x, coord.y);
@@ -2201,7 +2370,55 @@ function initAnnotations() {
   });
 }
 
-  
+let annoPopupTarget = null; // {x,y} pending a symbol choice
+
+function showAnnoPopup(x, y, clientX, clientY) {
+  annoPopupTarget = { x, y };
+  const pop = document.getElementById('anno-popup');
+
+  // Show it offscreen first so we can measure its size
+  pop.style.left = '-9999px';
+  pop.style.top  = '-9999px';
+  pop.style.display = 'flex';
+
+  const popW = pop.offsetWidth;
+  const popH = pop.offsetHeight;
+
+  // Get the cell's center in viewport coordinates
+  const barea  = document.querySelector('.barea');
+  const ar     = barea.getBoundingClientRect();
+  const center = getCellCenter(x, y);
+  const viewX  = ar.left + center.x;
+  const viewY  = ar.top  + center.y;
+
+  // Place popup centered on the cell, clamped to viewport edges
+  const px = Math.max(4, Math.min(viewX - popW / 2, window.innerWidth  - popW - 4));
+  const py = Math.max(4, Math.min(viewY - popH / 2, window.innerHeight - popH - 4));
+
+  pop.style.left = px + 'px';
+  pop.style.top  = py + 'px';
+
+  setTimeout(() => document.addEventListener('mousedown', hideAnnoPopup, { once: true }), 0);
+}
+
+function hideAnnoPopup(e) {
+  // Don't dismiss if the click was on the popup itself
+  const pop = document.getElementById('anno-popup');
+  if (e && pop.contains(e.target)) return;
+  pop.style.display = 'none';
+  annoPopupTarget = null;
+}
+
+function commitAnnoTic(sym) {
+  if (!annoPopupTarget) return;
+  const k = K(annoPopupTarget.x, annoPopupTarget.y);
+  if (annotations.tics[k] === sym) delete annotations.tics[k];
+  else annotations.tics[k] = sym;
+  document.getElementById('anno-popup').style.display = 'none';
+  annoPopupTarget = null;
+  renderBoard();
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  KEY HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -2264,7 +2481,7 @@ function renderBoard() {
   for (let y=vb.minY;y<=vb.maxY;y++)
     for (let x=vb.minX;x<=vb.maxX;x++)
       board.appendChild(buildCell(x,y,sz));
-  renderAnnoSVG();
+      renderAnnoSVG();
 }
 
 function buildCell(x,y,sz) {
@@ -2272,6 +2489,7 @@ function buildCell(x,y,sz) {
   const div=document.createElement('div');
   div.className='cell';
   div.style.cssText=`width:${sz}px;height:${sz}px`;
+  div.dataset.x=x; div.dataset.y=y;
   const even=(x+y)%2===0;
   if (c.hasBox) { div.classList.add('has-box'); div.style.background=even?'var(--box-a)':'var(--box-b)'; }
   else          { div.classList.add('no-box');  div.style.background=even?'var(--grid-a)':'var(--grid-b)'; }
@@ -2302,13 +2520,15 @@ function buildCell(x,y,sz) {
     else if (phase==='no' && canNo(x,y)) div.classList.add('h-no');
   }
   div.addEventListener('click', ()=>handleClick(x,y));
+  
+  // Annotation overlays
   if (annotateMode) {
-    const k = K(x, y);
+    const k = K(x,y);
     if (annotations.tics[k]) {
       const ghost = document.createElement('div');
-      ghost.className = `anno-tic ${annotations.tics[k] === 'X' ? 'x' : 'o'}`;
+      ghost.className = `anno-tic ${annotations.tics[k]==='X'?'x':annotations.tics[k]==='O'?'o':'i'}`;
       ghost.textContent = annotations.tics[k].toLowerCase();
-      ghost.style.fontSize = Math.round(sz * 0.52) + 'px';
+      ghost.style.fontSize = Math.round(sz*.52)+'px';
       div.appendChild(ghost);
     }
     if (annotations.nos[k]) {
@@ -2317,6 +2537,7 @@ function buildCell(x,y,sz) {
       div.appendChild(fakeNo);
     }
   }
+  
   return div;
 }
 
@@ -2452,7 +2673,13 @@ function checkWin(sym) {
 function endGameLocal() {
   over=true; phase='idle'; showCtrl('none');
   ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=true);
-  renderBoard(); showWinScreen();
+  renderBoard();
+  if (winCells.length === 3) {
+    drawWinLine(winCells);
+    setTimeout(() => showWinScreen(), 1100);
+  } else {
+    showWinScreen();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2464,6 +2691,163 @@ function endTurn() {
   showCtrl('none'); updatePlayerUI(); renderBoard();
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  CHESS CLOCKS
+// ═══════════════════════════════════════════════════════════════
+
+function syncClocks(data) {
+  if (data.timeControlMs !== undefined) timeControlMs = data.timeControlMs;
+  if (data.clocks) clocks = data.clocks;
+  if (data.turnStartedAt !== undefined) turnStartedAt = data.turnStartedAt;
+  renderClocks();
+}
+
+function formatClock(ms) {
+  if (ms == null) return '--:--';
+  const totalSec = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function renderClocks() {
+  const p1el = document.getElementById('p1clock');
+  const p2el = document.getElementById('p2clock');
+  if (!p1el || !p2el) return;
+  if (!timeControlMs) {
+    p1el.style.display = 'none';
+    p2el.style.display = 'none';
+    return;
+  }
+  p1el.style.display = 'block';
+  p2el.style.display = 'block';
+
+  const activeRole = curP === 1 ? 'host' : 'guest';
+  let liveHost = clocks.host, liveGuest = clocks.guest;
+  if (turnStartedAt && !over) {
+    const elapsed = Date.now() - turnStartedAt;
+    if (activeRole === 'host') liveHost = Math.max(0, clocks.host - elapsed);
+    else liveGuest = Math.max(0, clocks.guest - elapsed);
+  }
+  p1el.textContent = formatClock(liveHost);
+  p2el.textContent = formatClock(liveGuest);
+  p1el.classList.toggle('ticking', activeRole==='host' && !over);
+  p2el.classList.toggle('ticking', activeRole==='guest' && !over);
+  p1el.classList.toggle('low', activeRole==='host' && !over && liveHost < 10000);
+  p2el.classList.toggle('low', activeRole==='guest' && !over && liveGuest < 10000);
+}
+
+// One shared 1s tick drives both the live clock countdown and the
+// draw-offer countdown text — both are purely cosmetic client-side
+// timers; the server is authoritative for both (see server.js).
+function startClockTick() {
+  stopClockTick();
+  gameTickHandle = setInterval(() => { renderClocks(); renderDrawButton(); }, 1000);
+}
+function stopClockTick() {
+  if (gameTickHandle) { clearInterval(gameTickHandle); gameTickHandle = null; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DRAW OFFERS
+// ═══════════════════════════════════════════════════════════════
+
+function handleDrawClick() {
+  if (!isOnline || over || isSpectating) return;
+  if (drawOfferState === 'received') { sendToServer({type:'draw-accept'}); return; }
+  if (drawOfferState === 'sent' || drawOfferState === 'cooldown') return;
+  sendToServer({type:'draw-offer'});
+}
+
+function renderDrawButton() {
+  const btn = document.getElementById('draw-btn');
+  const mobBtn = document.getElementById('mob-draw-btn');
+  if (!btn) return;
+  const show = isOnline && !over && !isSpectating;
+  btn.style.display = show ? 'block' : 'none';
+  if (mobBtn) mobBtn.style.display = show ? 'block' : 'none';
+  if (!show) return;
+
+  const now = Date.now();
+  let text, disabled, offeredToMe = false;
+  if (drawOfferState === 'received') {
+    const secs = Math.max(0, Math.ceil((drawOfferExpiresAt - now) / 1000));
+    text = `Accept Draw? (${secs}s)`; disabled = false; offeredToMe = true;
+  } else if (drawOfferState === 'sent') {
+    const secs = Math.max(0, Math.ceil((drawOfferExpiresAt - now) / 1000));
+    text = `Draw Offered (${secs}s)`; disabled = true;
+  } else if (drawOfferState === 'cooldown') {
+    const secs = Math.max(0, Math.ceil((drawCooldownUntil - now) / 1000));
+    if (secs <= 0) { drawOfferState = 'idle'; text = 'Offer Draw'; disabled = false; }
+    else { text = `Offer Draw (${secs}s)`; disabled = true; }
+  } else {
+    text = 'Offer Draw'; disabled = false;
+  }
+  btn.textContent = text; btn.disabled = disabled;
+  btn.classList.toggle('offered-to-me', offeredToMe);
+  if (mobBtn) { mobBtn.textContent = text; mobBtn.disabled = disabled; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WINNING LINE
+// ═══════════════════════════════════════════════════════════════
+
+function drawWinLine(cellsWon) {
+  if (!cellsWon || cellsWon.length !== 3) return;
+  const barea = document.getElementById('barea');
+  const svg = document.getElementById('win-line-svg');
+  const path = document.getElementById('win-line-path');
+  const startCell = document.querySelector(`.cell[data-x="${cellsWon[0].x}"][data-y="${cellsWon[0].y}"]`);
+  const endCell   = document.querySelector(`.cell[data-x="${cellsWon[2].x}"][data-y="${cellsWon[2].y}"]`);
+  if (!startCell || !endCell) return;
+
+  const bareaRect = barea.getBoundingClientRect();
+  const sr = startCell.getBoundingClientRect();
+  const er = endCell.getBoundingClientRect();
+  const x1 = sr.left + sr.width/2 - bareaRect.left;
+  const y1 = sr.top + sr.height/2 - bareaRect.top;
+  const x2 = er.left + er.width/2 - bareaRect.left;
+  const y2 = er.top + er.height/2 - bareaRect.top;
+  const dist = Math.hypot(x2-x1, y2-y1) || 1;
+
+  path.setAttribute('x1', x1); path.setAttribute('y1', y1);
+  path.setAttribute('x2', x2); path.setAttribute('y2', y2);
+  path.style.transition = 'none';
+  path.style.strokeDasharray = String(dist);
+  path.style.strokeDashoffset = String(dist);
+  svg.style.display = 'block';
+  // force a reflow so the transition below actually animates from the reset state
+  void path.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    path.style.transition = 'stroke-dashoffset .6s ease-out';
+    path.style.strokeDashoffset = '0';
+  });
+}
+
+function hideWinLine() {
+  const svg = document.getElementById('win-line-svg');
+  if (svg) svg.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SPECTATING
+// ═══════════════════════════════════════════════════════════════
+
+function spectateRoom(code) {
+  connectWS(() => sendToServer({ type:'spectate', roomCode: code, token: currentSession?.access_token || null }));
+}
+
+function leaveSpectate() {
+  if (ws) { try { sendToServer({type:'leave'}); } catch(e) {} if (ws._hb) clearInterval(ws._hb); try { ws.close(); } catch(e) {} ws = null; }
+  isOnline = false; isSpectating = false; myRole = null; roomCode = null;
+  stopClockTick();
+  hideWinLine();
+  document.getElementById('spectate-banner').style.display = 'none';
+  document.getElementById('wov').classList.remove('show');
+  showLobby();
+}
+
+
 function updatePlayerUI() {
   document.getElementById('p1c').classList.toggle('active',curP===1);
   document.getElementById('p2c').classList.toggle('active',curP===2);
@@ -2471,7 +2855,12 @@ function updatePlayerUI() {
   document.getElementById('d2').style.display=curP===2?'block':'none';
   const pill=document.getElementById('turn-pill');
   let pillText='';
-  if (isOnline) {
+  if (isSpectating) {
+    pill.className='turn-pill '+(curP===1?'xp':'op');
+    pillText = over ? 'Game Over' : (curP===1 ? "X's Turn" : "O's Turn");
+    pill.textContent=pillText;
+    ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=true);
+  } else if (isOnline) {
     const mine=isMyTurn();
     pill.className='turn-pill '+(curP===1?'xp':'op');
     pillText=mine?'Your Turn':"Opponent's Turn";
@@ -2489,7 +2878,9 @@ function updatePlayerUI() {
   // sync mobile bar
   ['tic','grow','no'].forEach(id=>{const mb=document.getElementById('mob-btn-'+id);if(mb)mb.disabled=document.getElementById('btn-'+id).disabled;});
   const mt=document.getElementById('mob-turn');if(mt)mt.textContent=pillText;
-  const fb=document.getElementById('forfeit-btn'); if(fb) fb.style.display = (isOnline && !over) ? 'block' : 'none';
+  const fb=document.getElementById('forfeit-btn'); if(fb) fb.style.display = (isOnline && !over && !isSpectating) ? 'block' : 'none';
+  renderClocks();
+  renderDrawButton();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2553,6 +2944,7 @@ function resetGame() {
     document.getElementById('log').innerHTML=`<div class="lentry">Game started — Player ${curP} goes first.</div>`;
   }
   document.getElementById('wov').classList.remove('show');
+  hideWinLine();
   updatePlayerUI(); renderBoard();
 }
 
@@ -2584,15 +2976,11 @@ document.addEventListener('keydown', e => {
     }
   }
 });
-  
+
 initAuth();
 resetGame();
 initAnnotations();
 checkActiveGameBanner();
 </script>
-  <div id="anno-popup" style="display:none">
-    <button class="anno-pop-btn x" onclick="commitAnnoTic('X')">x</button>
-    <button class="anno-pop-btn o" onclick="commitAnnoTic('O')">o</button>
-  </div>
 </body>
 </html>
