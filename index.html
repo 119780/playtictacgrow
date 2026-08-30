@@ -540,6 +540,11 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .anno-pop-btn.o:hover { background: rgba(var(--o-rgb), .15) }
 .anno-pop-btn.i { color: #ffffff }
 .anno-pop-btn.i:hover { background: rgba(var(--i-rgb), .15) }
+
+.tc-btn:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
 </style>
 </head>
 
@@ -1372,7 +1377,7 @@ function updateMMUI() {
     desc.textContent = 'Sign in to enable ranked play';
   } else {
     toggle.disabled = false;
-    desc.textContent = 'Matched by skill — affects your ladder rank';
+    desc.textContent = '10 minute game affecting elo';
   }
   document.getElementById('mm-idle').style.display = mmActive ? 'none' : 'flex';
   document.getElementById('mm-searching').style.display = mmActive ? 'flex' : 'none';
@@ -1536,7 +1541,7 @@ let drawOfferExpiresAt = 0;
 let drawCooldownUntil  = 0;
 
 // ── Time control selection (host-setup screen) ──
-let selectedTimeControl = 'unlimited';
+let selectedTimeControl = '10';
 
 // ═══════════════════════════════════════════════════════════════
 //  WEBSOCKET LAYER
@@ -1937,7 +1942,7 @@ function prepareHostSetupScreen() {
   document.querySelectorAll('#time-control-row .tc-btn').forEach(b => b.classList.toggle('sel', b.dataset.tc === '10'));
   if (currentUser) {
     toggle.disabled = false;
-    desc.textContent = 'Tag this match for the future ladder ranking';
+    desc.textContent = 'Affects your leaderboard position. Forces 10-min clock';
   } else {
     toggle.disabled = true;
     desc.textContent = 'Sign in to enable ranked play';
@@ -1950,6 +1955,7 @@ function prepareHostSetupScreen() {
     title.style.display = 'none';
     btn.textContent = 'Create Room';
   }
+  applyRankedTimeControl();
   showScreen('ls-host-setup');
 }
 
@@ -1966,6 +1972,17 @@ function showHostScreen() {
 function toggleRanked() {
   wantsRanked = !wantsRanked;
   document.getElementById('ranked-toggle').classList.toggle('on', wantsRanked);
+  applyRankedTimeControl();
+}
+
+function applyRankedTimeControl() {
+  const btns = document.querySelectorAll('#time-control-row .tc-btn');
+  if (wantsRanked) {
+    setTimeControl('10');
+    btns.forEach(b => { b.disabled = b.dataset.tc !== '10'; });
+  } else {
+    btns.forEach(b => { b.disabled = false; });
+  }
 }
 
 function startHosting() {
