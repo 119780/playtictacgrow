@@ -1,5 +1,7 @@
 TicTacGrow — Changelog
-=======================
+======================
+Version 1.2.0
+
 
 Timer
 - Made 4 lengths of timer (1, 5, 10, unlimited)
