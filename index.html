@@ -588,6 +588,82 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   font-weight:700;
 }
 
+.review-players{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 10px;
+}
+.review-players>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:.75rem;
+}
+.review-players b{
+  font-family:'JetBrains Mono',monospace;
+}
+.review-players>div:first-child b{ color:var(--x); }
+.review-players>div:last-child b{ color:var(--o); }
+.review-result{
+  text-align:center;
+  padding:7px;
+  border-radius:7px;
+  background:rgba(240,192,64,.07);
+  color:var(--gold);
+  font-size:.72rem;
+  font-weight:700;
+}
+.review-move-info{
+  text-align:center;
+  color:var(--muted);
+  font-size:.7rem;
+  min-height:18px;
+  margin-bottom: 6px;
+}
+.review-arrows{
+display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:5px;
+}
+.review-arrows button{
+  padding:8px 3px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:var(--panel2);
+  color:var(--text);
+  cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  font-weight:700;
+}
+
+.review-arrows button:disabled{
+  opacity:.3;
+  cursor:not-allowed;
+}
+.review-engine-space{
+  margin-top:6px;
+  min-height:75px;
+  padding:9px;
+  border:1px dashed var(--border2);
+  border-radius:8px;
+  background:rgba(255,255,255,.015);
+}
+.review-engine-title{
+  font-size:.68rem;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:5px;
+}
+.review-engine-placeholder{
+  color:var(--muted);
+  font-size:.63rem;
+  line-height:1.4;
+}
+
 </style>
 </head>
 
@@ -872,7 +948,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 
 <!-- ══ HEADER ══ -->
 <header class="hdr">
-  <span class="logo" onclick="confirmForfeit()" title="Go to dashboard">Tic<b>Tac</b><i>Grow</i></span>
+  <span class="logo" onclick="confirmForfeit(); closeGameReview()" title="Go to dashboard">Tic<b>Tac</b><i>Grow</i></span>
   <div class="hdr-space"></div>
   <div class="conn-badge" id="conn-badge" style="display:none">
     <div class="conn-dot"></div><span id="conn-label">Online</span>
@@ -893,6 +969,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
       <div class="dot" id="d2" style="display:none"></div>
     </div>
     <div class="div"></div>
+    <div id="action-controls" style="display:contents;">
     <div class="slabel">Choose Action</div>
     <button id="btn-tic" class="abtn tic" onclick="selectAction('tic')">
       <div class="aicon">x</div><div><div class="atitle">Tic</div><div class="adesc">Place your symbol in a box</div></div>
@@ -916,7 +993,35 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
     <div id="ctrl-cancel" style="display:none">
       <button class="btn-can-full" onclick="cancelAction()">Cancel</button>
     </div>
-        <div class="div"></div>
+    </div>
+    	<div id="review-controls" style="display:none;">
+    	<div class="slabel">Game Review</div>
+    	<br>
+    	<div class="review-result" id="review-result">Game in progress</div>
+    	<br>
+    	<div class="review-move-info" id="review-move-info">
+    		Start position
+    		<br>
+    		-
+    	</div>
+    	<div class="review-arrows">
+    		<button class="btn-can-full" id="review-first" onclick="reviewFirst()">&lt;&lt;</button>
+    		<button class="btn-can-full" id="review-prev" onclick="reviewPrev()">&lt;</button>
+    		<button class="btn-can-full" id="review-next" onclick="reviewNext()">&gt;</button>
+    		<button class="btn-can-full" id="review-last" onclick="reviewLast()">&gt;&gt;</button>
+    	</div>
+    	<div class="review-engine-space">
+    		<div class="review-engine-title">Move Evaluation</div>
+    		<div class="review-engine-placeholder">
+    			Stockfish equivalent will go here
+    		</div>
+    	</div>
+    	<br>
+    	<button class="btn-can-full" onclick="closeGameReview()">
+    		Exit Review
+    	</button>
+    </div>
+    <div class="div"></div>
     <div class="slabel">Annotate</div>
     <button id="annotate-btn" class="abtn" onclick="toggleAnnotateMode()">
       <div>
@@ -2183,6 +2288,7 @@ function confirmForfeit() {
   if (isSpectating) { leaveSpectate(); return; }
   if (over || !isOnline) { goHome(); return; } // nothing live to forfeit, just navigate
   if (confirm('Forfeit this game? Your opponent will win.')) goHome();
+  annotateMode = false;
 }
 
 function toggleMobMenu() {
@@ -2493,6 +2599,319 @@ function commitAnnoTic(sym) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// GAME REVIEW
+// ═══════════════════════════════════════════════════════════════
+let reviewMode = false;
+let reviewGame = null;
+
+// 0 = starting position
+// 1 = after move 1
+// 2 = after move 2
+// etc.
+let reviewMoveIndex = 0;
+let reviewAnnotationsEnabled = false;
+
+function openGameReview(){
+  const input = document.getElementById('game-review-file');
+  input.value = '';
+  input.click();
+}
+
+async function loadGameReviewFile(event){
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const game = parseTTG(text);
+    reviewGame = game;
+	reviewMoveIndex = 0;
+	startGameReview();
+  } catch(err) {
+	console.error(err);
+	alert(`Could not read game file:\n${err.message}`);
+  }
+}
+
+function parseTTG(text){
+  const lines = text
+	.split(/\r?\n/)
+	.map(x => x.trim())
+	.filter(Boolean);
+	
+  if (lines.shift() !== 'TTG1') {
+	throw new Error('Not a valid TTG1 game file.');
+  }
+  
+  const data = {
+	p1: 'Player 1',
+	p2: 'Player 2',
+	first: 1,
+	winner: null,
+	moves: []
+  };
+  
+  for(const line of lines){
+	if(line.startsWith('P1=')){
+	  data.p1 = line.slice(3);
+	} else if(line.startsWith('P2=')){
+	  data.p2 = line.slice(3);
+	} else if(line.startsWith('F=')){
+	  data.first = Number(line.slice(2));
+	  
+	  if(data.first !== 1 && data.first !== 2)
+		throw new Error('Invalid first-player value.');
+	} else if(line.startsWith('W=')){
+	  const w = line.slice(2);
+	  data.winner = w === '0' ? null : Number(w);
+	  
+	  if(data.winner !== null && ![1,2].includes(data.winner))
+		throw new Error('Invalid winner.');
+	} else if(line.startsWith('M=')){
+	  data.moves = line
+		.slice(2)
+		.split(';')
+		.filter(Boolean)
+		.map(parseTTGMove);
+	}
+  }
+  
+  return data;
+}
+
+function parseTTGMove(s) {
+  // Tic
+  let m = s.match(/^t\((-?\d+),(-?\d+)\)$/);
+  if (m) {
+    return {
+      action: 'tic',
+      x: Number(m[1]),
+      y: Number(m[2])
+    };
+  }
+  // No
+  m = s.match(/^n\((-?\d+),(-?\d+)\)$/);
+  
+  if (m) {
+    return {
+      action: 'no',
+      x: Number(m[1]),
+      y: Number(m[2])
+    };
+  }
+  // Grow
+  m = s.match(/^g\((-?\d+),(-?\d+)\)>(.*)$/);
+  if (m) {
+    const ox = Number(m[1]);
+    const oy = Number(m[2]);
+    const coordinates = [
+      ...m[3].matchAll(/\((-?\d+),(-?\d+)\)/g)
+    ];
+    if (coordinates.length < 1 || coordinates.length > 2) {
+      throw new Error(
+        `Grow must have 1 or 2 destination coordinates: ${s}`
+      );
+    }
+    const placements = coordinates.map(c => ({
+      x: Number(c[1]),
+      y: Number(c[2])
+    }));
+    return {
+      action: 'grow',
+      ox,
+      oy,
+      placements
+    };
+  }
+  throw new Error(`Invalid move syntax: ${s}`);
+}
+
+function startGameReview() {
+  reviewMode = true;
+  isOnline = false;
+  isSpectating = false;
+  hideWinLine();
+  document.getElementById('lobby').style.display = 'none';
+  document.getElementById('review-controls').style.display = 'block';
+  document.getElementById('action-controls').style.display = 'none';
+  document.getElementById('p1name').textContent = reviewGame.p1;
+  document.getElementById('p2name').textContent = reviewGame.p2;
+
+  const result =
+    reviewGame.winner === null ?
+    'Draw / Unfinished' :
+    `${reviewGame.winner === 1 ? reviewGame.p1 : reviewGame.p2} wins`;
+  document.getElementById('review-result').textContent = result;
+  reviewSetPosition(0);
+}
+
+function reviewSetPosition(index) {
+  if (!reviewGame) return;
+  reviewMoveIndex = Math.max(
+    0,
+    Math.min(index, reviewGame.moves.length)
+  );
+  cells = {};
+  for (let x = 0; x < 3; x++) {
+    for (let y = 0; y < 3; y++) {
+      setC(x, y, {
+        hasBox: true,
+        blackedOut: false,
+        symbol: null
+      });
+    }
+  }
+  curP = reviewGame.first;
+  phase = 'idle';
+  gOrigin = null;
+  gSel = [];
+  winCells = [];
+  over = false;
+  for (let i = 0; i < reviewMoveIndex; i++) {
+    const move = reviewGame.moves[i];
+    reviewApplyMove(move);
+    curP = curP === 1 ? 2 : 1;
+  }
+  if (reviewMoveIndex === reviewGame.moves.length) {
+    over = !!reviewGame.winner;
+    if (reviewGame.winner) {
+      const sym = reviewGame.winner === 1 ? 'X' : 'O';
+      checkWin(sym);
+    }
+  }
+  phase = 'idle';
+  gOrigin = null;
+  gSel = [];
+  renderBoard();
+  renderAnnoSVG();
+  updateReviewUI();
+  updateReviewTurnUI();
+}
+
+function reviewApplyMove(move) {
+  if (move.action === 'tic') {
+    setC(move.x, move.y, {
+      symbol: curP === 1 ? 'X' : 'O'
+    });
+  } else if (move.action === 'grow') {
+    for (const p of move.placements) {
+      setC(p.x, p.y, {
+        hasBox: true,
+        blackedOut: false,
+        symbol: null
+      });
+    }
+  } else if (move.action === 'no') {
+    setC(move.x, move.y, {
+      blackedOut: true
+    });
+  }
+}
+
+function reviewFirst() {
+  reviewSetPosition(0);
+}
+
+function reviewPrev() {
+  reviewSetPosition(reviewMoveIndex - 1);
+}
+
+function reviewNext() {
+  reviewSetPosition(reviewMoveIndex + 1);
+}
+
+function reviewLast() {
+  reviewSetPosition(reviewGame.moves.length);
+}
+
+function updateReviewUI() {
+  const total = reviewGame.moves.length;
+  const i = reviewMoveIndex;
+  document.getElementById('review-first').disabled = i === 0;
+  document.getElementById('review-prev').disabled = i === 0;
+  document.getElementById('review-next').disabled = i >= total;
+  document.getElementById('review-last').disabled = i >= total;
+  if (i === 0) {
+    document.getElementById('review-move-info').innerHTML =
+      'Starting position<br>-';
+    return;
+  }
+  const move = reviewGame.moves[i - 1];
+  
+  const mover = ((reviewGame.first - 1 + (i - 1)) % 2) + 1;
+
+  const moverName =
+    mover === 1 ? reviewGame.p1 : reviewGame.p2;
+    
+  let description = '';
+  if (move.action === 'tic') {
+    description =
+      `${moverName} · Tic (${move.x}, ${move.y})`;
+  } else if (move.action === 'grow') {
+    description =
+      `${moverName} · Grow`;
+  } else if (move.action === 'no') {
+    description =
+      `${moverName} · No (${move.x}, ${move.y})`;
+  }
+  document.getElementById('review-move-info').innerHTML =
+    `${description}<br>${i}/${total}`;
+}
+
+function updateReviewTurnUI(){
+
+  const firstPlayer = reviewGame.first;
+  const currentPlayer = curP;
+
+  const firstName =
+    firstPlayer === 1 ? reviewGame.p1 : reviewGame.p2;
+
+  const currentName =
+    currentPlayer === 1 ? reviewGame.p1 : reviewGame.p2;
+
+  const pill = document.getElementById('turn-pill');
+
+  // Header turn pill
+  pill.className =
+    'turn-pill ' + (currentPlayer === 1 ? 'xp' : 'op');
+
+  if(reviewMoveIndex === 0){
+    pill.textContent = `${firstName} goes first`;
+  }
+  else if(reviewMoveIndex >= reviewGame.moves.length){
+    pill.textContent = 'Game Over';
+  }
+  else{
+    pill.textContent = `${currentName}'s Turn`;
+  }
+
+  // Player cards
+  document.getElementById('p1c')
+    .classList.toggle('active', currentPlayer === 1);
+
+  document.getElementById('p2c')
+    .classList.toggle('active', currentPlayer === 2);
+
+  document.getElementById('d1').style.display =
+    currentPlayer === 1 ? 'block' : 'none';
+
+  document.getElementById('d2').style.display =
+    currentPlayer === 2 ? 'block' : 'none';
+}
+
+function closeGameReview() {
+  reviewMode = false;
+  reviewGame = null;
+  reviewMoveIndex = 0;
+  reviewAnnotationsEnabled = false;
+  annotateMode = false;
+  clearAnnotations();
+  document.getElementById('review-controls').style.display = 'none';
+  document.getElementById('action-controls').style.display = 'contents';
+  resetGame();
+  showLobby();
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  KEY HELPERS
 // ═══════════════════════════════════════════════════════════════
 const K   = (x,y) => `${x},${y}`;
@@ -2654,6 +3073,7 @@ function isMyTurn() {
 
 function handleClick(x,y) {
   if (annotateMode) return;
+  if (reviewMode) return;
   if (over) return;
   if (isOnline&&!isMyTurn()) return;
   if      (phase==='tic')      doTic(x,y);
