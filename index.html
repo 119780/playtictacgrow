@@ -110,7 +110,14 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 @keyframes wglow{from{border-color:var(--gold);background:rgba(240,192,64,.2)}to{border-color:rgba(240,192,64,.55);background:rgba(240,192,64,.08)}}
 .wov{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
 .wov.show{display:flex}
-.wcard{background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:40px 48px;text-align:center;max-width:380px;width:100%}
+.wcard{position:relative;background:var(--panel);border:2px solid var(--gold);border-radius:18px;padding:40px 48px;text-align:center;max-width:380px;width:100%}
+.wov-download-btn{
+  position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;
+  border-radius:8px;border:1.5px solid var(--border2);background:rgba(255,255,255,.06);
+  color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.wov-download-btn:hover{background:rgba(240,192,64,.12);border-color:var(--gold);color:var(--gold)}
 
 /* ── MOBILE BOTTOM BAR ── */
 .mob-bar{display:none;flex-direction:column;gap:8px;background:var(--panel);border-top:1px solid var(--border);padding:10px 12px calc(14px + env(safe-area-inset-bottom));flex-shrink:0}
@@ -459,19 +466,20 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .friend-btn:hover{filter:brightness(1.08)}
 .friend-btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* ── DASHBOARD NAV ── */
-.dash-nav-row{display:flex;gap:6px;margin-bottom:4px}
-.dash-nav-btn{
-  flex:1;position:relative;padding:9px;border-radius:9px;
-  border:1.5px solid var(--border);background:var(--panel2);
-  color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;
-  font-family:inherit;transition:all .15s;
+/* ── USER CARD ICON BUTTONS (Friends / Settings) ── */
+.auth-icon-row{display:flex;gap:6px;flex-shrink:0}
+.auth-icon-btn{
+  position:relative;width:34px;height:34px;flex-shrink:0;padding:0;
+  border-radius:8px;border:1.5px solid var(--border);background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-family:inherit;transition:all .15s;
 }
-.dash-nav-btn:hover{border-color:var(--border2);background:#313131}
-.dash-nav-badge{
+.auth-icon-btn:hover{border-color:var(--border2);background:#313131}
+.auth-icon-img{width:18px;height:18px;object-fit:contain;display:block;pointer-events:none}
+.auth-icon-badge{
   position:absolute;top:-6px;right:-6px;background:var(--gold);color:#0a0900;
-  font-size:.62rem;font-weight:800;min-width:16px;height:16px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;padding:0 3px;
+  font-size:.6rem;font-weight:800;min-width:15px;height:15px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;padding:0 3px;pointer-events:none;
 }
 
 .match-row{
@@ -711,19 +719,21 @@ display:grid;
             <div class="auth-name" id="auth-name">Player</div>
             <button class="auth-signout" onclick="signOutUser()">Sign out</button>
           </div>
+          <div class="auth-icon-row">
+            <button class="auth-icon-btn" onclick="openFriends()" title="Friends">
+              <span class="auth-icon-badge" id="friend-req-badge" style="display:none">0</span>
+              <img class="auth-icon-img" src="icon-friends.png" alt="Friends">
+            </button>
+            <button class="auth-icon-btn" onclick="openSettings()" title="Settings">
+              <img class="auth-icon-img" src="icon-settings.png" alt="Settings">
+            </button>
+          </div>
         </div>
         <div class="stats-row">
           <div class="stat-box"><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
           <div class="stat-box"><div class="stat-val" id="stat-losses">0</div><div class="stat-lbl">Losses</div></div>
           <div class="stat-box"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
           <div class="stat-box stat-box-click" onclick="openLeaderboard()" title="View leaderboard"><div class="stat-val" id="stat-rank">—</div><div class="stat-lbl">ELO</div></div>
-        </div>
-        <div class="dash-nav-row">
-          <button class="dash-nav-btn" onclick="openFriends()">
-            <span class="dash-nav-badge" id="friend-req-badge" style="display:none">0</span>
-            Friends
-          </button>
-          <button class="dash-nav-btn" onclick="openSettings()">Settings</button>
         </div>
       </div>
 
@@ -1049,6 +1059,9 @@ display:grid;
     <svg id="win-line-svg" style="display:none"><line class="win-line-path" id="win-line-path" x1="0" y1="0" x2="0" y2="0"/></svg>
     <div class="wov" id="wov">
       <div class="wcard">
+        <button class="wov-download-btn" id="wov-download-btn" onclick="downloadCurrentGameTTG()" title="Download game (.ttg)" style="display:none">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        </button>
         <div class="wtitle" id="wtitle">You Win</div>
         <div class="wsub" id="wsub">Three in a row</div>
         <!-- Online normal end -->
@@ -1142,6 +1155,13 @@ const SERVER_URL = isLocal
 // ╚══════════════════════════════════════════════════════════════╝
 const SUPABASE_URL      = 'https://vdaitbnkhntjubfoiand.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkYWl0Ym5raG50anViZm9pYW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTU4MTEsImV4cCI6MjEwMjQ5MTgxMX0.mPmmLAqidC1G1mqzs7qxJoXGCOpFavD7daWMN1Oth3U';
+
+// A player's ranked-10-min record only counts toward the leaderboard
+// (and their own ladder position) once they've played this many ranked
+// games — keeps a lucky short streak from vaulting someone to #1.
+// Must match PROVISIONAL_GAMES_THRESHOLD's spirit in server.js, though
+// the two numbers are intentionally different (see server.js comments).
+const MIN_LEADERBOARD_GAMES = 5;
 
 // ═══════════════════════════════════════════════════════════════
 //  AUTH — Supabase Google OAuth (optional; guests work without it)
@@ -1264,9 +1284,13 @@ function escapeHtml(s) {
 // newer) — used by both the personal rank display and the leaderboard.
 async function fetchSortedStats() {
   if (!supa) return [];
-  const { data } = await supa.from('stats').select('user_id, elo_rating, profiles:user_id(display_name, avatar_url, created_at)');
+  const { data } = await supa.from('stats').select('user_id, elo_rating, ranked_games_played, profiles:user_id(display_name, avatar_url, created_at)');
   if (!data) return [];
-  return data.slice().sort((a, b) => {
+  // Leaderboard eligibility gate — a player needs at least
+  // MIN_LEADERBOARD_GAMES ranked 10-min games under their belt before
+  // their rating counts toward the ladder at all.
+  const eligible = data.filter(r => (r.ranked_games_played ?? 0) >= MIN_LEADERBOARD_GAMES);
+  return eligible.slice().sort((a, b) => {
     if (b.elo_rating !== a.elo_rating) return b.elo_rating - a.elo_rating;
     const at = a.profiles?.created_at ? new Date(a.profiles.created_at).getTime() : Infinity;
     const bt = b.profiles?.created_at ? new Date(b.profiles.created_at).getTime() : Infinity;
@@ -1773,6 +1797,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       syncClocks(data);
+      startNewGameLog(data.state.curP);
       applyServerState(data.state, null, true);
       saveActiveGame(roomCode, 'host', data.guestName, false);
       startClockTick();
@@ -1786,6 +1811,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       syncClocks(data);
+      startNewGameLog(data.state.curP);
       applyServerState(data.state, null, true);
       saveActiveGame(data.code || roomCode, 'guest', data.hostName, false);
       startClockTick();
@@ -1800,6 +1826,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       syncClocks(data);
+      startNewGameLog(data.state.curP);
       applyServerState(data.state, null, true);
       saveActiveGame(data.code, data.role, data.opponentName, data.ranked);
       startClockTick();
@@ -1826,6 +1853,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       syncClocks(data);
+      startNewGameLog(data.state.curP, false); // moves made before we reconnected are unknown — not exportable
       applyServerState(data.state, null, true);
       saveActiveGame(roomCode, data.role, data.opponentName, data.ranked);
       startClockTick();
@@ -1842,6 +1870,7 @@ function handleServerMessage(data) {
 
     case 'state':
       syncClocks(data);
+      if (data.move) recordGameMove(data.move);
       applyServerState(data.state, data.move, false);
       break;
 
@@ -1852,11 +1881,13 @@ function handleServerMessage(data) {
       hideWinLine();
       drawOfferState = 'idle'; drawCooldownUntil = 0;
       syncClocks(data);
+      startNewGameLog(data.state.curP);
       applyServerState(data.state, null, true);
       break;
 
     case 'opponent-resigned':
       over = true; phase = 'idle'; showCtrl('none');
+      gameResultWinner = myRole === 'host' ? 1 : 2; // the recipient of this message is the winner
       ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
       renderBoard();
       stopClockTick();
@@ -1866,6 +1897,7 @@ function handleServerMessage(data) {
 
     case 'timeout': {
       over = true; phase = 'idle'; showCtrl('none');
+      gameResultWinner = data.loserRole === 'host' ? 2 : 1;
       ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled=true);
       renderBoard();
       stopClockTick();
@@ -1911,6 +1943,7 @@ function handleServerMessage(data) {
       updateConnBadge('online');
       hideLobby();
       syncClocks(data);
+      startNewGameLog(data.state.curP, false); // moves made before we tuned in are unknown — not exportable
       applyServerState(data.state, null, true);
       startClockTick();
       logNet(`Spectating ${data.hostName||'Player 1'} vs ${data.guestName||'Player 2'}`);
@@ -1920,6 +1953,7 @@ function handleServerMessage(data) {
       if (!isSpectating) break;
       over = true;
       stopClockTick();
+      gameResultWinner = data.reason==='draw' ? null : (data.winnerRole==='host' ? 1 : 2);
       const winnerName = data.winnerRole === 'host'
         ? document.getElementById('p1name').textContent
         : document.getElementById('p2name').textContent;
@@ -1931,6 +1965,7 @@ function handleServerMessage(data) {
       });
       document.getElementById('win-spectator').style.display = 'flex';
       document.getElementById('wov').classList.add('show');
+      updateGameDownloadBtn();
       break;
     }
 
@@ -1980,6 +2015,7 @@ function applyServerState(state, move, isInit, opts) {
   curP     = state.curP;
   over     = state.over;
   winCells = state.winCells || [];
+  if (over && winCells.length === 3) gameResultWinner = curP; // curP is the mover who just won — server doesn't flip it on a win
   phase    = 'idle';
   gOrigin  = null;
   gSel     = [];
@@ -2031,6 +2067,7 @@ function showWinScreen(isResign=false, title=null, sub=null) {
     btn.textContent = 'Play Again'; btn.disabled = false;
   }
   document.getElementById('wov').classList.add('show');
+  updateGameDownloadBtn();
   if (!isResign) logWin(`Player ${curP} wins with three in a row!`);
 }
 
@@ -2321,6 +2358,14 @@ function updateConnBadge(state) {
 // ═══════════════════════════════════════════════════════════════
 const BUFFER = 3;
 let cells={}, curP=1, phase='idle', gOrigin=null, gSel=[], winCells=[], over=false;
+
+// ── Move log for the current game — used purely to construct a .ttg
+// export on demand (see "GAME EXPORT" below). Nothing here is sent to
+// or stored on the server; it just mirrors moves as they're made.
+let gameMoveLog     = [];   // ordered list of {action,x,y} | {action,ox,oy,placements}
+let gameFirstPlayer = 1;    // which player (1 or 2) moved first this game
+let gameResultWinner = null; // 1, 2, or null (draw / not yet decided)
+let gameLogComplete  = true; // false if we joined a game already in progress (rejoin/spectate), so the log can't be trusted for export
 
 // ═══════════════════════════════════════════════════════
 //  ANNOTATION / DRAW MODE
@@ -2739,7 +2784,7 @@ function startGameReview() {
   const result =
     reviewGame.winner === null ?
     'Draw / Unfinished' :
-    `${reviewGame.winner === 1 ? reviewGame.p1 : reviewGame.p2} Wins`;
+    `${reviewGame.winner === 1 ? reviewGame.p1 : reviewGame.p2} wins`;
   document.getElementById('review-result').textContent = result;
   reviewSetPosition(0);
 }
@@ -3089,6 +3134,7 @@ function doTic(x,y) {
   const sym=curP===1?'X':'O';
   setC(x,y,{symbol:sym});
   log(`Tic — placed ${sym.toLowerCase()} at (${x},${y})`);
+  recordGameMove({action:'tic', x, y});
   if (checkWin(sym)) { endGameLocal(); return; }
   endTurn();
 }
@@ -3127,6 +3173,7 @@ function confirmGrow() {
   const coords=placements.map(p=>`(${p.x},${p.y})`).join(', ');
   for (const p of placements) setC(p.x,p.y,{hasBox:true,blackedOut:false,symbol:null});
   log(`Grow from (${ox},${oy}) — added ${coords}`);
+  recordGameMove({action:'grow', ox, oy, placements});
   gOrigin=null; gSel=[]; showCtrl('none'); endTurn();
 }
 
@@ -3139,6 +3186,7 @@ function doNo(x,y) {
   // while still being visible, dimmed, underneath the scribble.
   setC(x,y,{blackedOut:true});
   log(`No — blacked out (${x},${y})${hadSym?' [had '+hadSym+']':''}`);
+  recordGameMove({action:'no', x, y});
   endTurn();
 }
 
@@ -3165,6 +3213,7 @@ function checkWin(sym) {
 
 function endGameLocal() {
   over=true; phase='idle'; showCtrl('none');
+  gameResultWinner = curP; // curP hasn't switched yet — it's the player who just won
   ['tic','grow','no'].forEach(id=>document.getElementById('btn-'+id).disabled=true);
   renderBoard();
   if (winCells.length === 3) {
@@ -3323,6 +3372,69 @@ function hideWinLine() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  GAME EXPORT (.ttg)
+//  Nothing is stored server-side — the file is assembled entirely in
+//  the browser from the move log tracked during play, and handed to
+//  the browser as a download. See parseTTG() above for the reader.
+// ═══════════════════════════════════════════════════════════════
+
+// Called at the start of every fresh game (local reset, room created/
+// joined, matchmade, or rematched). `complete` is false for a rejoin
+// or a mid-game spectate join, where we can't see the moves that
+// already happened — the download button stays hidden in that case.
+function startNewGameLog(firstPlayer, complete = true) {
+  gameMoveLog      = [];
+  gameFirstPlayer  = firstPlayer;
+  gameResultWinner = null;
+  gameLogComplete  = complete;
+}
+
+function recordGameMove(move) {
+  gameMoveLog.push(move);
+}
+
+function moveToTTG(move) {
+  if (move.action === 'tic')  return `t(${move.x},${move.y})`;
+  if (move.action === 'no')   return `n(${move.x},${move.y})`;
+  if (move.action === 'grow') {
+    const coords = move.placements.map(p => `(${p.x},${p.y})`).join(',');
+    return `g(${move.ox},${move.oy})>${coords}`;
+  }
+  return '';
+}
+
+function buildTTGContent() {
+  const p1 = (document.getElementById('p1name').textContent || 'Player 1').trim();
+  const p2 = (document.getElementById('p2name').textContent || 'Player 2').trim();
+  const winnerField = gameResultWinner === null ? 0 : gameResultWinner;
+  const movesStr = gameMoveLog.map(moveToTTG).join(';');
+  return `TTG1\nP1=${p1}\nP2=${p2}\nF=${gameFirstPlayer}\nW=${winnerField}\nM=${movesStr}${movesStr ? ';' : ''}\n`;
+}
+
+// Shows/hides the small download button in the corner of the win/lose/
+// draw card based on whether we actually have a complete, exportable log.
+function updateGameDownloadBtn() {
+  const btn = document.getElementById('wov-download-btn');
+  if (!btn) return;
+  btn.style.display = (gameLogComplete && gameMoveLog.length > 0) ? 'flex' : 'none';
+}
+
+function downloadCurrentGameTTG() {
+  if (!gameLogComplete || gameMoveLog.length === 0) return;
+  const content = buildTTGContent();
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tictacgrow-${stamp}.ttg`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  SPECTATING
 // ═══════════════════════════════════════════════════════════════
 
@@ -3429,6 +3541,7 @@ function resetGame() {
   cells={}; for(let x=0;x<3;x++) for(let y=0;y<3;y++) setC(x,y,{hasBox:true,blackedOut:false,symbol:null});
   curP = Math.random()<0.5 ? 1 : 2; // randomize who goes first, local play too
   phase='idle'; gOrigin=null; gSel=[]; winCells=[]; over=false;
+  startNewGameLog(curP);
   showCtrl('none');
   ['tic','grow','no'].forEach(id=>{document.getElementById('btn-'+id).classList.remove('sel'); document.getElementById('btn-'+id).disabled=false;});
   if (!isOnline) {
