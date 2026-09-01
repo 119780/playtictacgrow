@@ -545,6 +545,49 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
   opacity: .3;
   cursor: not-allowed;
 }
+
+.game-review-btn{
+  width:100%;
+  margin-top:8px;
+  padding:9px 11px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  background:var(--panel2);
+  color:var(--text);
+  cursor:pointer;
+  font-family:inherit;
+  transition:all .15s;
+  text-align:center;
+  align-items:center;
+  justify-content: center;
+}
+.game-review-btn:hover{
+  border-color:var(--gold);
+  background:rgba(240,192,64,.06);
+}
+.game-review-btn>span{
+  width:28px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  text-align:center;
+  justify-content:center;
+  border-radius:6px;
+  background:rgba(240,192,64,.1);
+  color:var(--gold);
+  font-size:1rem;
+}
+.game-review-btn div{
+  font-size:.78rem;
+  text-align:center;
+  align-items:center;
+  justify-content: center;
+  font-weight:700;
+}
+
 </style>
 </head>
 
@@ -627,6 +670,19 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
         <div id="recent-matches-list" class="friends-list"></div>
       </div>
     </div>
+    
+    <button class="game-review-btn" onclick="openGameReview()">
+		<div>
+			<div>Game Review</div>
+		</div>
+	</button>
+	<input
+		type="file"
+		id="game-review-file"
+		accept=".ttg,.json,text/plain,application/json"
+		style="display:none"
+		onchange="loadGameReviewFile(event)"
+	>
 
     <!-- Play hub — every way to start a game lives here -->
     <div class="lscreen" id="ls-play">
