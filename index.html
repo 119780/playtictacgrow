@@ -2739,7 +2739,7 @@ function startGameReview() {
   const result =
     reviewGame.winner === null ?
     'Draw / Unfinished' :
-    `${reviewGame.winner === 1 ? reviewGame.p1 : reviewGame.p2} wins`;
+    `${reviewGame.winner === 1 ? reviewGame.p1 : reviewGame.p2} Wins`;
   document.getElementById('review-result').textContent = result;
   reviewSetPosition(0);
 }
