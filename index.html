@@ -71,6 +71,25 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .lentry .lx{color:var(--x);font-weight:700}.lentry .lo{color:var(--o);font-weight:700}
 .lentry.lwin{background:rgba(240,192,64,.09);color:var(--gold);font-weight:600}
 .lentry.lnet{color:#5a8a6a;font-style:italic}
+.lmove-note{font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:600}
+
+/* ── IN-GAME CHAT (players only — visually distinct from move entries) ── */
+.lentry.lchat{background:rgba(255,255,255,.04);border-radius:6px;color:var(--text);font-style:normal}
+.lentry.lchat .lchat-name{color:var(--gold);font-weight:700;margin-right:5px}
+.lentry.lchat.lchat-me .lchat-name{color:var(--green)}
+.chat-input-row{display:none;gap:6px}
+.chat-input{
+  flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--panel2);color:var(--text);font-size:.78rem;font-family:inherit;outline:none;
+  transition:border-color .15s;
+}
+.chat-input:focus{border-color:var(--border2)}
+.chat-input::placeholder{color:var(--muted)}
+.chat-send-btn{
+  flex-shrink:0;padding:8px 14px;border-radius:8px;border:none;background:var(--gold);
+  color:#0a0900;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.chat-send-btn:hover{filter:brightness(1.08)}
 .rbtn{background:none;border:1.5px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:8px;font-size:.77rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;width:100%}
 .forfeit-btn{
   width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(200,56,56,.35);
@@ -229,6 +248,18 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .lbig-play:hover{filter:brightness(1.06);transform:translateY(-1px)}
 .lbig-play-title{font-size:1.2rem;font-weight:800;letter-spacing:.02em}
 .lbig-play-desc{font-size:.76rem;font-weight:600;opacity:.75;margin-top:2px}
+
+/* Learn / Puzzles — same visual language as the Play button, sized to
+   sit underneath it as a pair. Inert for now (no handlers, no cursor
+   affordance) — placeholders for future sections. */
+.lbig-sub-row{display:flex;gap:8px}
+.lbig-sub-btn{
+  flex:1;padding:18px 4px;border-radius:14px;color:#fff;
+  text-align:center;user-select:none;
+}
+.lbig-sub-title{font-size:1rem;font-weight:800;letter-spacing:.02em}
+.lbig-learn{background:#9163d4}
+.lbig-puzzles{background:#4c7fe0}
 .lbig-local-small{
   width:100%;padding:10px 16px;border-radius:10px;
   border:1.5px solid var(--border);background:var(--panel2);color:var(--text);
@@ -751,19 +782,25 @@ display:grid;
         <div class="lbig-play-desc">Local, online, ranked, or with friends</div>
       </button>
 
+      <div class="lbig-sub-row">
+        <button class="lbig-sub-btn lbig-learn">
+          <div class="lbig-sub-title">Learn</div>
+        </buttob>
+        <button class="lbig-sub-btn lbig-puzzles">
+          <div class="lbig-sub-title">Puzzles</div>
+        </button>
+      </div>
+
       <div id="recent-matches-block" style="display:none">
         <div class="friends-subhead" id="recent-matches-head">Recent Matches</div>
         <div id="recent-matches-list" class="friends-list"></div>
       </div>
 
-	  <button class="game-review-btn" onclick="openGameReview()">
+      <button class="game-review-btn" onclick="openGameReview()">
 		<div>
-		  <div>Game Review</div>
+			<div>Game Review</div>
 		</div>
-	  </button>
-    </div>
-    
-    
+	</button>
 	<input
 		type="file"
 		id="game-review-file"
@@ -771,9 +808,11 @@ display:grid;
 		style="display:none"
 		onchange="loadGameReviewFile(event)"
 	>
+    </div>
 
     <!-- Play hub — every way to start a game lives here -->
     <div class="lscreen" id="ls-play">
+
 
       <!-- Matchmaking -->
       <div class="mm-card" id="mm-idle">
@@ -1092,6 +1131,10 @@ display:grid;
   <aside class="side right">
     <div class="slabel">Move History</div>
     <div class="log" id="log"><div class="lentry">Game started — Player 1 goes first.</div></div>
+    <div class="chat-input-row" id="chat-input-row" style="display:none">
+      <input type="text" id="chat-input" class="chat-input" maxlength="300" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChatMessage()">
+      <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+    </div>
     <div class="div"></div>
     <button class="rbtn" onclick="toggleRules()">How to Play</button>
     <div class="rpanel" id="rpanel">
@@ -1870,6 +1913,10 @@ function handleServerMessage(data) {
       showToast('Opponent reconnected.');
       break;
 
+    case 'chat':
+      logChat(data.name || 'Player', data.text || '', data.role === myRole);
+      break;
+
     case 'state':
       syncClocks(data);
       if (data.move) recordGameMove(data.move);
@@ -2073,23 +2120,31 @@ function showWinScreen(isResign=false, title=null, sub=null) {
   if (!isResign) logWin(`Player ${curP} wins with three in a row!`);
 }
 
+// Move-history notation mirrors the .ttg move syntax (see parseTTGMove
+// above), but re-origins the coordinate system so the center of the
+// starting 3×3 grid reads as (0,0) — purely a sidebar display
+// convention. The underlying game state, server protocol, and .ttg
+// export all keep the original top-left-origin coordinates untouched.
+function historyCoord(x, y) { return `(${x-1},${y-1})`; }
+
+function historyMoveNotation(move) {
+  if (move.action === 'tic')  return `t${historyCoord(move.x, move.y)}`;
+  if (move.action === 'no')   return `n${historyCoord(move.x, move.y)}`;
+  if (move.action === 'grow') return `g${move.placements.map(p => historyCoord(p.x, p.y)).join(',')}`;
+  return '';
+}
+
 function logMove(move) {
-  const p   = move.role==='host' ? 1 : 2;
-  const sym = p===1 ? 'x' : 'o';
-  const cls = p===1 ? 'lx' : 'lo';
-  let text;
-  if      (move.action==='tic')  text = `Tic — placed ${sym} at (${move.x},${move.y})`;
-  else if (move.action==='grow') {
-    const coords = move.placements.map(pl => `(${pl.x},${pl.y})`).join(', ');
-    text = `Grow from (${move.ox},${move.oy}) → ${coords}`;
-  }
-  else if (move.action==='no')   text = `No — blacked out (${move.x},${move.y})`;
-  else return;
+  const p    = move.role==='host' ? 1 : 2;
+  const cls  = p===1 ? 'lx' : 'lo';
+  const text = historyMoveNotation(move);
+  if (!text) return;
   const div = document.createElement('div');
   div.className = 'lentry';
-  div.innerHTML = `<span class="${cls}">P${p}</span> ${text}`;
+  div.innerHTML = `<span class="${cls}">P${p}</span> <span class="lmove-note">${text}</span>`;
   const l = document.getElementById('log'); l.appendChild(div); l.scrollTop = l.scrollHeight;
 }
+
 
 // Send a move to server and lock UI until server responds
 function sendOnlineMove(data) {
@@ -3135,7 +3190,7 @@ function doTic(x,y) {
   if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
   const sym=curP===1?'X':'O';
   setC(x,y,{symbol:sym});
-  log(`Tic — placed ${sym.toLowerCase()} at (${x},${y})`);
+  log(historyMoveNotation({action:'tic', x, y}));
   recordGameMove({action:'tic', x, y});
   if (checkWin(sym)) { endGameLocal(); return; }
   endTurn();
@@ -3172,9 +3227,8 @@ function confirmGrow() {
   if (gSel.length===0) return;
   const ox=gOrigin.x, oy=gOrigin.y, placements=[...gSel];
   if (isOnline) { sendOnlineMove({action:'grow',ox,oy,placements}); gOrigin=null; gSel=[]; showCtrl('none'); return; }
-  const coords=placements.map(p=>`(${p.x},${p.y})`).join(', ');
   for (const p of placements) setC(p.x,p.y,{hasBox:true,blackedOut:false,symbol:null});
-  log(`Grow from (${ox},${oy}) — added ${coords}`);
+  log(historyMoveNotation({action:'grow', placements}));
   recordGameMove({action:'grow', ox, oy, placements});
   gOrigin=null; gSel=[]; showCtrl('none'); endTurn();
 }
@@ -3187,7 +3241,7 @@ function doNo(x,y) {
   // `blackedOut`, not symbol presence, so it stays functionally "not there"
   // while still being visible, dimmed, underneath the scribble.
   setC(x,y,{blackedOut:true});
-  log(`No — blacked out (${x},${y})${hadSym?' [had '+hadSym+']':''}`);
+  log(historyMoveNotation({action:'no', x, y}));
   recordGameMove({action:'no', x, y});
   endTurn();
 }
@@ -3486,6 +3540,7 @@ function updatePlayerUI() {
   ['tic','grow','no'].forEach(id=>{const mb=document.getElementById('mob-btn-'+id);if(mb)mb.disabled=document.getElementById('btn-'+id).disabled;});
   const mt=document.getElementById('mob-turn');if(mt)mt.textContent=pillText;
   const fb=document.getElementById('forfeit-btn'); if(fb) fb.style.display = (isOnline && !over && !isSpectating) ? 'block' : 'none';
+  const chatRow=document.getElementById('chat-input-row'); if(chatRow) chatRow.style.display = (isOnline && !isSpectating) ? 'flex' : 'none';
   renderClocks();
   renderDrawButton();
 }
@@ -3517,7 +3572,7 @@ function showCtrl(mode) {
 function log(text) {
   const div=document.createElement('div'); div.className='lentry';
   const cls=curP===1?'lx':'lo';
-  div.innerHTML=`<span class="${cls}">P${curP}</span> ${text}`;
+  div.innerHTML=`<span class="${cls}">P${curP}</span> <span class="lmove-note">${text}</span>`;
   const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
 }
 function logNet(text) {
@@ -3529,6 +3584,27 @@ function logWin(text) {
   const div=document.createElement('div'); div.className='lentry lwin'; div.textContent=text;
   const l=document.getElementById('log'); l.appendChild(div); l.scrollTop=l.scrollHeight;
 }
+
+// ── In-game chat — visually distinct from move-history entries above.
+// Players only; spectators can see the log but the input row never
+// renders for them (see updatePlayerUI). ──
+function logChat(name, text, isMe) {
+  const div = document.createElement('div');
+  div.className = 'lentry lchat' + (isMe ? ' lchat-me' : '');
+  div.innerHTML = `<span class="lchat-name">${escapeHtml(name)}</span>${escapeHtml(text)}`;
+  const l = document.getElementById('log'); l.appendChild(div); l.scrollTop = l.scrollHeight;
+}
+
+function sendChatMessage() {
+  if (!isOnline || isSpectating) return; // spectators cannot chat
+  const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  sendToServer({ type:'chat', text });
+  inp.value = '';
+}
+
 function toggleRules() { document.getElementById('rpanel').classList.toggle('open'); }
 function showToast(msg) {
   const t=document.getElementById('dc-toast');
