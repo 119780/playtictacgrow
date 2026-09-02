@@ -254,9 +254,11 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
    affordance) — placeholders for future sections. */
 .lbig-sub-row{display:flex;gap:8px}
 .lbig-sub-btn{
-  flex:1;padding:10px 16px;border-radius:10px;color:#fff;
-  text-align:center;user-select:none;
+  flex:1;padding:10px 16px;border-radius:10px;border:none;color:#fff;
+  text-align:center;user-select:none;cursor:pointer;font-family:inherit;
+  transition:all .15s;
 }
+.lbig-sub-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
 .lbig-sub-title{font-size:1rem;font-weight:800;letter-spacing:.02em}
 .lbig-learn{background:#9163d4}
 .lbig-puzzles{background:#4c7fe0}
@@ -783,12 +785,12 @@ display:grid;
       </button>
 
       <div class="lbig-sub-row">
-        <div class="lbig-sub-btn lbig-learn">
+        <button class="lbig-sub-btn lbig-learn">
           <div class="lbig-sub-title">Learn</div>
-        </div>
-        <div class="lbig-sub-btn lbig-puzzles">
+        </button>
+        <button class="lbig-sub-btn lbig-puzzles">
           <div class="lbig-sub-title">Puzzles</div>
-        </div>
+        </button>
       </div>
 
       <div id="recent-matches-block" style="display:none">
