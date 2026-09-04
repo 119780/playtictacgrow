@@ -498,6 +498,13 @@ body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-u
 .friend-btn.decline{background:rgba(255,255,255,.08);color:var(--muted)}
 .friend-btn:hover{filter:brightness(1.08)}
 .friend-btn:disabled{opacity:.5;cursor:not-allowed}
+.recent-matches-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 6px}
+.rm-filter-select{
+  background:var(--panel2);border:1.5px solid var(--border);color:var(--text);
+  font-size:.68rem;font-weight:600;font-family:inherit;border-radius:7px;
+  padding:4px 8px;cursor:pointer;outline:none;transition:border-color .15s;
+}
+.rm-filter-select:hover{border-color:var(--border2)}
 
 /* ── USER CARD ICON BUTTONS (Friends / Settings) ── */
 .auth-icon-row{display:flex;gap:6px;flex-shrink:0}
@@ -705,6 +712,9 @@ display:grid;
   line-height:1.4;
 }
 
+.lbig:disabled{opacity:.55;cursor:default}
+.lbig:disabled:hover{border-color:var(--border);background:var(--panel2)}
+
 </style>
 </head>
 
@@ -788,15 +798,21 @@ display:grid;
         <button class="lbig-sub-btn lbig-learn">
           <div class="lbig-sub-title">Learn (no use)</div>
         </button>
-        <button class="lbig-sub-btn lbig-puzzles">
-          <div class="lbig-sub-title">Puzzles (no use)</div>
-        </button>
+        <button class="lbig-sub-btn lbig-puzzles" onclick="showPuzzlesScreen()">
+  		  <div class="lbig-sub-title">Puzzles</div>
+		</button>
       </div>
 
       <div id="recent-matches-block" style="display:none">
-        <div class="friends-subhead" id="recent-matches-head">Recent Matches</div>
-        <div id="recent-matches-list" class="friends-list"></div>
-      </div>
+  		<div class="recent-matches-header">
+    	  <div class="friends-subhead" id="recent-matches-head" style="margin:0">Recent Matches</div>
+    	  <select class="rm-filter-select" id="recent-matches-filter" onchange="loadRecentMatches()">
+      		<option value="all">Overall</option>
+      		<option value="ranked">Ranked</option>
+    	  </select>
+  		</div>
+  		<div id="recent-matches-list" class="friends-list"></div>
+	  </div>
 
       <button class="game-review-btn" onclick="openGameReview()">
 		<div>
@@ -962,6 +978,19 @@ display:grid;
       </div>
       <button class="lbtn-sec" style="width:100%;margin-top:10px" onclick="showChooseScreen()">Back</button>
     </div>
+    <!-- Puzzles -->
+	<div class="lscreen" id="ls-puzzles">
+  	  <div class="dash-h2">Puzzles</div>
+  	  <button class="lbig" disabled>
+    	<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(145,99,212,.14);color:var(--learn)">★</div>
+        <div><div class="lbig-title">Daily Puzzle</div><div class="lbig-desc">A new puzzle every day — coming soon</div></div>
+  	  </button>
+  	  <button class="lbig" disabled>
+        <div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(76,127,224,.14);color:var(--puzzles)">∞</div>
+        <div><div class="lbig-title">Infinite Puzzles</div><div class="lbig-desc">Endless puzzles, one after another — coming soon</div></div>
+      </button>
+      <button class="lbtn-sec" style="width:100%;margin-top:4px" onclick="showChooseScreen()">Back</button>
+	</div>
   </div>
 </div>
 
@@ -1296,17 +1325,22 @@ async function loadStats() {
 // ── Recent matches — dashboard history strip ──
 async function loadRecentMatches() {
   if (!supa || !currentUser) return;
-  const blockEl = document.getElementById('recent-matches-block');
-  const listEl = document.getElementById('recent-matches-list');
+  const blockEl  = document.getElementById('recent-matches-block');
+  const listEl   = document.getElementById('recent-matches-list');
+  const rankedOnly = document.getElementById('recent-matches-filter')?.value === 'ranked';
   try {
-    const { data } = await supa
+    let query = supa
       .from('matches')
       .select('id, player1_id, player2_id, winner_id, ranked, created_at, p1:player1_id(display_name), p2:player2_id(display_name)')
-      .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`)
-      .order('created_at', { ascending: false })
-      .limit(5);
-    if (!data || data.length === 0) { blockEl.style.display='none'; listEl.innerHTML=''; return; }
-    blockEl.style.display = 'block';
+      .or(`player1_id.eq.${currentUser.id},player2_id.eq.${currentUser.id}`);
+    if (rankedOnly) query = query.eq('ranked', true);
+    const { data } = await query.order('created_at', { ascending: false }).limit(5);
+
+    blockEl.style.display = 'block'; // stays visible so the filter is always reachable
+    if (!data || data.length === 0) {
+      listEl.innerHTML = `<div class="friends-empty">No ${rankedOnly ? 'ranked ' : ''}matches yet.</div>`;
+      return;
+    }
     listEl.innerHTML = data.map(m => {
       const won = m.winner_id === currentUser.id;
       const iAmP1 = m.player1_id === currentUser.id;
@@ -2127,7 +2161,7 @@ function showWinScreen(isResign=false, title=null, sub=null) {
 // starting 3×3 grid reads as (0,0) — purely a sidebar display
 // convention. The underlying game state, server protocol, and .ttg
 // export all keep the original top-left-origin coordinates untouched.
-function historyCoord(x, y) { return `(${x-1},${y-1})`; }
+function historyCoord(x, y) { return `(${x-1},${-(y-1)})`; }
 
 function historyMoveNotation(move) {
   if (move.action === 'tic')  return `t${historyCoord(move.x, move.y)}`;
@@ -2173,6 +2207,14 @@ function showPlayScreen() {
   showScreen('ls-play');
   updateMMUI();
   loadPlayFriends();
+}
+
+function showPuzzlesScreen() {
+  showScreen('ls-puzzles');
+}
+
+function showPuzzlesScreen() {
+  showScreen('ls-puzzles');
 }
 
 function showChooseScreen() {
