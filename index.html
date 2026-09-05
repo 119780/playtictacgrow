@@ -712,13 +712,23 @@ display:grid;
   line-height:1.4;
 }
 
-.puzzle-theme-badge{
-  background:var(--panel2);border:1.5px solid var(--border);border-radius:9px;
-  padding:9px 12px;font-size:.8rem;font-weight:700;color:var(--gold);text-align:center;
+.puzzle-action-btn{
+  width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border2);
+  background:rgba(255,255,255,.04);color:var(--text);font-size:.77rem;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .15s;margin-bottom:6px;
 }
-.puzzle-feedback{font-size:.76rem;color:var(--muted);min-height:18px;margin-top:8px;line-height:1.4}
-.puzzle-feedback.good{color:var(--green);font-weight:600}
-.puzzle-feedback.bad{color:var(--x);font-weight:600}
+.puzzle-action-btn:hover{background:rgba(255,255,255,.09)}
+.puzzle-action-btn.solved{
+  border-color:var(--green);background:var(--green);color:#071a0e;
+}
+.puzzle-action-btn.solved:hover{filter:brightness(1.08)}
+
+.puzzle-exit-btn{
+  width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);
+  background:none;color:var(--muted);font-size:.77rem;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .15s;margin-bottom:6px;
+}
+.puzzle-exit-btn:hover{color:var(--text);border-color:var(--border2)}
 
 .lbig:disabled{opacity:.55;cursor:default}
 .lbig:disabled:hover{border-color:var(--border);background:var(--panel2)}
@@ -1111,16 +1121,6 @@ display:grid;
     		Exit Review
     	</button>
     </div>
-    <div id="puzzle-controls" style="display:none;">
-  	  <div class="slabel">Puzzle</div>
-	  <div class="puzzle-theme-badge" id="puzzle-theme">Find the winning move</div>
-  	  <div class="puzzle-feedback" id="puzzle-feedback"></div>
-  	  <div class="ctrl-row" style="margin-top:8px">
-    	<button class="btn-can" style="flex:1" onclick="revealPuzzleSolution()">Show Solution</button>
-  	  </div>
-  	  <button class="btn-can-full" id="puzzle-next-btn" style="display:none;margin-top:6px" onclick="loadNextInfinitePuzzle()">Next Puzzle</button>
-  	  <button class="btn-can-full" style="margin-top:6px" onclick="closePuzzle()">Exit Puzzle</button>
-	</div>
     <div class="div"></div>
     <div class="slabel">Annotate</div>
     <button id="annotate-btn" class="abtn" onclick="toggleAnnotateMode()">
@@ -1195,7 +1195,9 @@ display:grid;
     <div style="flex:1"></div>
     <button class="draw-btn" id="draw-btn" onclick="handleDrawClick()" style="display:none">Offer Draw</button>
     <button class="forfeit-btn" id="forfeit-btn" onclick="confirmForfeit()" style="display:none">Forfeit Game</button>
-    <button class="changelog-btn" onclick="openChangelog()">What's New</button>
+    <button class="puzzle-action-btn" id="puzzle-action-btn" style="display:none">Move?</button>
+	<button class="puzzle-exit-btn" id="puzzle-exit-btn" onclick="exitPuzzleToPuzzlesPage()" style="display:none">Exit Puzzle</button>
+    <button class="changelog-btn" onclick="openChangelog()" style="display:none">What's New</button>
     <div style="text-align:center;font-size:.7rem;color:var(--muted)">TicTacGrow · Local &amp; Online</div>
   </aside>
 </div>
@@ -2442,7 +2444,7 @@ function goHome() {
 // reuses goHome()'s existing resign-then-navigate logic.
 function confirmForfeit() {
   if (isSpectating) { leaveSpectate(); return; }
-  if (puzzleMode) { closePuzzle(); return; }
+  if (puzzleMode) { exitPuzzleToPuzzlesPage(); return; }
   if (over || !isOnline) { goHome(); return; } // nothing live to forfeit, just navigate
   if (confirm('Forfeit this game? Your opponent will win.')) goHome();
   annotateMode = false;
@@ -2953,7 +2955,6 @@ function startPuzzleMode() {
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('action-controls').style.display = 'contents';
   document.getElementById('review-controls').style.display = 'none';
-  document.getElementById('puzzle-controls').style.display = 'block';
 
   cells = {};
   for (const k in currentPuzzle.cells) cells[k] = {
@@ -2968,12 +2969,10 @@ function startPuzzleMode() {
 
   document.getElementById('p1name').textContent = 'Player 1';
   document.getElementById('p2name').textContent = 'Player 2';
-  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle — find ${currentPuzzle.turn}'s best move.</div>`;
-  document.getElementById('puzzle-theme').textContent = puzzleThemeLabel(currentPuzzle.theme);
-  const fb = document.getElementById('puzzle-feedback');
-  fb.textContent = '';
-  fb.className = 'puzzle-feedback';
-  document.getElementById('puzzle-next-btn').style.display = 'none';
+  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle — force a win.</div>`;
+
+  document.getElementById('puzzle-exit-btn').style.display = 'block';
+  updatePuzzleActionButton();
 
   ['tic', 'grow', 'no'].forEach(id => {
     const b = document.getElementById('btn-' + id);
@@ -2985,29 +2984,55 @@ function startPuzzleMode() {
   renderBoard();
 }
 
-function closePuzzle() {
-  puzzleMode = false;
-  currentPuzzle = null;
-  puzzleSolved = false;
-  puzzleFlow = null;
-  document.getElementById('puzzle-controls').style.display = 'none';
-  document.getElementById('action-controls').style.display = 'contents';
-  resetGame();
-  showLobby();
+// The single button that's either "Move?" (a hint, gray) before the
+// puzzle is solved, or — once solved — either "Next Puzzle" (green,
+// infinite mode only) or hidden (daily mode, nothing further to do).
+function updatePuzzleActionButton() {
+  const btn = document.getElementById('puzzle-action-btn');
+  if (!btn) return;
+  if (!puzzleMode) {
+    btn.style.display = 'none';
+    return;
+  }
+  if (puzzleSolved) {
+    if (puzzleFlow === 'infinite') {
+      btn.textContent = 'Next Puzzle';
+      btn.className = 'puzzle-action-btn solved';
+      btn.style.display = 'block';
+      btn.onclick = loadNextInfinitePuzzle;
+    } else {
+      btn.style.display = 'none';
+    }
+  } else {
+    btn.textContent = 'Move?';
+    btn.className = 'puzzle-action-btn';
+    btn.style.display = 'block';
+    btn.onclick = revealPuzzleSolution;
+  }
 }
 
-function puzzleThemeLabel(theme) {
-  if (theme === 'fork') return 'Force the win with one Grow';
-  if (theme === 'mate1') return 'Find the winning move';
-  if (theme === 'block') return 'Find the only safe move';
-  return 'Solve the puzzle';
+function exitPuzzleToPuzzlesPage() {
+  puzzleMode = false; currentPuzzle = null; puzzleSolved = false; puzzleFlow = null;
+  document.getElementById('puzzle-action-btn').style.display = 'none';
+  document.getElementById('puzzle-exit-btn').style.display = 'none';
+  document.getElementById('action-controls').style.display = 'contents';
+  resetGame();
+  showLobbyAtPuzzles();
+}
+
+// Same as showLobby(), but opens straight to the Puzzles screen
+// instead of the main dashboard — used when leaving a puzzle.
+function showLobbyAtPuzzles() {
+  const lb = document.getElementById('lobby');
+  lb.style.display = 'flex';
+  requestAnimationFrame(() => lb.classList.remove('hidden'));
+  showScreen('ls-puzzles');
+  setLobbyErr('');
 }
 
 function puzzleSolvedMessage(theme) {
   if (theme === 'fork') return 'That grow creates an unstoppable double threat.';
-  if (theme === 'mate1') return 'Three in a row.';
-  if (theme === 'block') return "That's the only move that survives.";
-  return '';
+  return 'Forces the win.';
 }
 
 // Origin is deliberately ignored for grow comparison — the resulting
@@ -3043,21 +3068,16 @@ function applyPuzzleMoveLocally(move) {
 
 function submitPuzzleMove(move) {
   if (!currentPuzzle || puzzleSolved) return;
-  const fb = document.getElementById('puzzle-feedback');
   if (movesMatch(move, currentPuzzle.solutionMoves[0])) {
     puzzleSolved = true;
     applyPuzzleMoveLocally(move);
-    fb.textContent = 'Solved! ' + puzzleSolvedMessage(currentPuzzle.theme);
-    fb.className = 'puzzle-feedback good';
-    ['tic', 'grow', 'no'].forEach(id => document.getElementById('btn-' + id).disabled = true);
-    document.getElementById('puzzle-next-btn').style.display = puzzleFlow === 'infinite' ? 'block' : 'none';
+    logWin('Solved! ' + puzzleSolvedMessage(currentPuzzle.theme));
+    ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled = true);
+    updatePuzzleActionButton();
   } else {
-    fb.textContent = "Not quite — that doesn't force the win. Try again.";
-    fb.className = 'puzzle-feedback bad';
-    phase = 'idle';
-    gOrigin = null;
-    gSel = [];
-    ['tic', 'grow', 'no'].forEach(id => document.getElementById('btn-' + id).classList.remove('sel'));
+    logNet("Not quite — that doesn't force the win. Try again.");
+    phase = 'idle'; gOrigin = null; gSel = [];
+    ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).classList.remove('sel'));
     showCtrl('none');
     renderBoard();
   }
@@ -3068,11 +3088,9 @@ function revealPuzzleSolution() {
   const sol = currentPuzzle.solutionMoves[0];
   puzzleSolved = true;
   applyPuzzleMoveLocally(sol);
-  const fb = document.getElementById('puzzle-feedback');
-  fb.textContent = 'Solution: ' + moveToTTG(sol) + ' — ' + puzzleSolvedMessage(currentPuzzle.theme);
-  fb.className = 'puzzle-feedback';
-  ['tic', 'grow', 'no'].forEach(id => document.getElementById('btn-' + id).disabled = true);
-  document.getElementById('puzzle-next-btn').style.display = puzzleFlow === 'infinite' ? 'block' : 'none';
+  logNet('Solution: ' + moveToTTG(sol) + ' — ' + puzzleSolvedMessage(currentPuzzle.theme));
+  ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled = true);
+  updatePuzzleActionButton();
 }
 
 // .pz1 parsing + manifest-driven loading
