@@ -712,6 +712,14 @@ display:grid;
   line-height:1.4;
 }
 
+.puzzle-theme-badge{
+  background:var(--panel2);border:1.5px solid var(--border);border-radius:9px;
+  padding:9px 12px;font-size:.8rem;font-weight:700;color:var(--gold);text-align:center;
+}
+.puzzle-feedback{font-size:.76rem;color:var(--muted);min-height:18px;margin-top:8px;line-height:1.4}
+.puzzle-feedback.good{color:var(--green);font-weight:600}
+.puzzle-feedback.bad{color:var(--x);font-weight:600}
+
 .lbig:disabled{opacity:.55;cursor:default}
 .lbig:disabled:hover{border-color:var(--border);background:var(--panel2)}
 
@@ -981,14 +989,14 @@ display:grid;
     <!-- Puzzles -->
 	<div class="lscreen" id="ls-puzzles">
   	  <div class="dash-h2">Puzzles</div>
-  	  <button class="lbig" disabled>
-    	<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(145,99,212,.14);color:var(--learn)">★</div>
-        <div><div class="lbig-title">Daily Puzzle</div><div class="lbig-desc">A new puzzle every day — coming soon</div></div>
-  	  </button>
-  	  <button class="lbig" disabled>
-        <div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(76,127,224,.14);color:var(--puzzles)">∞</div>
-        <div><div class="lbig-title">Infinite Puzzles</div><div class="lbig-desc">Endless puzzles, one after another — coming soon</div></div>
-      </button>
+  	  <button class="lbig" onclick="startDailyPuzzle()">
+  		<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(145,99,212,.14);color:var(--learn)">★</div>
+  		<div><div class="lbig-title">Daily Puzzle</div><div class="lbig-desc">A new puzzle every day</div></div>
+		</button>
+	  <button class="lbig" onclick="startInfinitePuzzle()">
+  		<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(76,127,224,.14);color:var(--puzzles)">∞</div>
+  		<div><div class="lbig-title">Infinite Puzzles</div><div class="lbig-desc">Endless puzzles, one after another</div></div>
+	  </button>
       <button class="lbtn-sec" style="width:100%;margin-top:4px" onclick="showChooseScreen()">Back</button>
 	</div>
   </div>
@@ -1103,6 +1111,16 @@ display:grid;
     		Exit Review
     	</button>
     </div>
+    <div id="puzzle-controls" style="display:none;">
+  	  <div class="slabel">Puzzle</div>
+	  <div class="puzzle-theme-badge" id="puzzle-theme">Find the winning move</div>
+  	  <div class="puzzle-feedback" id="puzzle-feedback"></div>
+  	  <div class="ctrl-row" style="margin-top:8px">
+    	<button class="btn-can" style="flex:1" onclick="revealPuzzleSolution()">Show Solution</button>
+  	  </div>
+  	  <button class="btn-can-full" id="puzzle-next-btn" style="display:none;margin-top:6px" onclick="loadNextInfinitePuzzle()">Next Puzzle</button>
+  	  <button class="btn-can-full" style="margin-top:6px" onclick="closePuzzle()">Exit Puzzle</button>
+	</div>
     <div class="div"></div>
     <div class="slabel">Annotate</div>
     <button id="annotate-btn" class="abtn" onclick="toggleAnnotateMode()">
@@ -2424,6 +2442,7 @@ function goHome() {
 // reuses goHome()'s existing resign-then-navigate logic.
 function confirmForfeit() {
   if (isSpectating) { leaveSpectate(); return; }
+  if (puzzleMode) { closePuzzle(); return; }
   if (over || !isOnline) { goHome(); return; } // nothing live to forfeit, just navigate
   if (confirm('Forfeit this game? Your opponent will win.')) goHome();
   annotateMode = false;
@@ -2871,6 +2890,304 @@ function parseTTGMove(s) {
   throw new Error(`Invalid move syntax: ${s}`);
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  PUZZLE MODE
+// ═══════════════════════════════════════════════════════════════
+let puzzleMode = false;
+let puzzleFlow = null; // 'daily' | 'infinite'
+let currentPuzzle = null; // parsed PZ1 object
+let puzzleSolved = false;
+
+async function startDailyPuzzle() {
+  try {
+    const entry = await pickDailyPuzzleEntry();
+    hideLobby();
+    await loadPuzzleEntry(entry, 'daily');
+  } catch (e) {
+    alert(e.message);
+  }
+}
+async function startInfinitePuzzle() {
+  try {
+    const entry = await pickRandomPuzzleEntry();
+    hideLobby();
+    await loadPuzzleEntry(entry, 'infinite');
+  } catch (e) {
+    alert(e.message);
+  }
+}
+async function loadNextInfinitePuzzle() {
+  try {
+    const entry = await pickRandomPuzzleEntry();
+    await loadPuzzleEntry(entry, 'infinite');
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function loadPuzzleEntry(entry, flow) {
+  try {
+    const res = await fetch('puzzles/' + entry.file, {
+      cache: 'no-store'
+    });
+    if (!res.ok) throw new Error('Puzzle file not found: ' + entry.file);
+    const text = await res.text();
+    currentPuzzle = parsePZ1(text);
+    currentPuzzle.file = entry.file;
+    puzzleFlow = flow;
+    markPuzzleShown(entry.file);
+    startPuzzleMode();
+  } catch (e) {
+    alert('Could not load puzzle: ' + e.message);
+  }
+}
+
+function startPuzzleMode() {
+  puzzleMode = true;
+  puzzleSolved = false;
+  isOnline = false;
+  isSpectating = false;
+  reviewMode = false;
+  annotateMode = false;
+  hideWinLine();
+  document.getElementById('lobby').style.display = 'none';
+  document.getElementById('action-controls').style.display = 'contents';
+  document.getElementById('review-controls').style.display = 'none';
+  document.getElementById('puzzle-controls').style.display = 'block';
+
+  cells = {};
+  for (const k in currentPuzzle.cells) cells[k] = {
+    ...currentPuzzle.cells[k]
+  };
+  curP = currentPuzzle.turn === 'X' ? 1 : 2;
+  phase = 'idle';
+  gOrigin = null;
+  gSel = [];
+  winCells = [];
+  over = false;
+
+  document.getElementById('p1name').textContent = 'Player 1';
+  document.getElementById('p2name').textContent = 'Player 2';
+  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle — find ${currentPuzzle.turn}'s best move.</div>`;
+  document.getElementById('puzzle-theme').textContent = puzzleThemeLabel(currentPuzzle.theme);
+  const fb = document.getElementById('puzzle-feedback');
+  fb.textContent = '';
+  fb.className = 'puzzle-feedback';
+  document.getElementById('puzzle-next-btn').style.display = 'none';
+
+  ['tic', 'grow', 'no'].forEach(id => {
+    const b = document.getElementById('btn-' + id);
+    b.classList.remove('sel');
+    b.disabled = false;
+  });
+  showCtrl('none');
+  updatePlayerUI();
+  renderBoard();
+}
+
+function closePuzzle() {
+  puzzleMode = false;
+  currentPuzzle = null;
+  puzzleSolved = false;
+  puzzleFlow = null;
+  document.getElementById('puzzle-controls').style.display = 'none';
+  document.getElementById('action-controls').style.display = 'contents';
+  resetGame();
+  showLobby();
+}
+
+function puzzleThemeLabel(theme) {
+  if (theme === 'fork') return 'Force the win with one Grow';
+  if (theme === 'mate1') return 'Find the winning move';
+  if (theme === 'block') return 'Find the only safe move';
+  return 'Solve the puzzle';
+}
+
+function puzzleSolvedMessage(theme) {
+  if (theme === 'fork') return 'That grow creates an unstoppable double threat.';
+  if (theme === 'mate1') return 'Three in a row.';
+  if (theme === 'block') return "That's the only move that survives.";
+  return '';
+}
+
+// Origin is deliberately ignored for grow comparison — the resulting
+// board only depends on which cells get filled, not which existing
+// full box was used as the adjacency anchor, so a different (still
+// legal) origin than the solver happened to pick is still correct.
+function movesMatch(a, b) {
+  if (!a || !b || a.action !== b.action) return false;
+  if (a.action === 'tic' || a.action === 'no') return a.x === b.x && a.y === b.y;
+  if (a.action === 'grow') {
+    const key = m => m.map(p => `${p.x},${p.y}`).sort().join('|');
+    return key(a.placements) === key(b.placements);
+  }
+  return false;
+}
+
+function applyPuzzleMoveLocally(move) {
+  const sym = curP === 1 ? 'X' : 'O';
+  if (move.action === 'tic') setC(move.x, move.y, {
+    symbol: sym
+  });
+  else if (move.action === 'no') setC(move.x, move.y, {
+    blackedOut: true
+  });
+  else if (move.action === 'grow')
+    for (const p of move.placements) setC(p.x, p.y, {
+      hasBox: true,
+      blackedOut: false,
+      symbol: null
+    });
+  renderBoard();
+}
+
+function submitPuzzleMove(move) {
+  if (!currentPuzzle || puzzleSolved) return;
+  const fb = document.getElementById('puzzle-feedback');
+  if (movesMatch(move, currentPuzzle.solutionMoves[0])) {
+    puzzleSolved = true;
+    applyPuzzleMoveLocally(move);
+    fb.textContent = 'Solved! ' + puzzleSolvedMessage(currentPuzzle.theme);
+    fb.className = 'puzzle-feedback good';
+    ['tic', 'grow', 'no'].forEach(id => document.getElementById('btn-' + id).disabled = true);
+    document.getElementById('puzzle-next-btn').style.display = puzzleFlow === 'infinite' ? 'block' : 'none';
+  } else {
+    fb.textContent = "Not quite — that doesn't force the win. Try again.";
+    fb.className = 'puzzle-feedback bad';
+    phase = 'idle';
+    gOrigin = null;
+    gSel = [];
+    ['tic', 'grow', 'no'].forEach(id => document.getElementById('btn-' + id).classList.remove('sel'));
+    showCtrl('none');
+    renderBoard();
+  }
+}
+
+function revealPuzzleSolution() {
+  if (!currentPuzzle || puzzleSolved) return;
+  const sol = currentPuzzle.solutionMoves[0];
+  puzzleSolved = true;
+  applyPuzzleMoveLocally(sol);
+  const fb = document.getElementById('puzzle-feedback');
+  fb.textContent = 'Solution: ' + moveToTTG(sol) + ' — ' + puzzleSolvedMessage(currentPuzzle.theme);
+  fb.className = 'puzzle-feedback';
+  ['tic', 'grow', 'no'].forEach(id => document.getElementById('btn-' + id).disabled = true);
+  document.getElementById('puzzle-next-btn').style.display = puzzleFlow === 'infinite' ? 'block' : 'none';
+}
+
+// .pz1 parsing + manifest-driven loading
+function setCellIn(container, x, y, u) {
+  const k = K(x, y);
+  const prev = container[k] || {
+    hasBox: false,
+    blackedOut: false,
+    symbol: null
+  };
+  container[k] = {
+    ...prev,
+    ...u
+  };
+}
+
+function parsePZ1(text) {
+  const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  if (lines.shift() !== 'PZ1') throw new Error('Not a valid PZ1 puzzle file.');
+
+  const data = {
+    theme: 'mate1',
+    turn: 'X',
+    difficulty: 1,
+    cells: {},
+    solutionMoves: []
+  };
+
+  for (const line of lines) {
+    if (line.startsWith('THEME=')) data.theme = line.slice(6);
+    else if (line.startsWith('TURN=')) data.turn = line.slice(5) === 'O' ? 'O' : 'X';
+    else if (line.startsWith('DIFF=')) data.difficulty = Number(line.slice(5)) || 1;
+    else if (line.startsWith('CELLS=')) {
+      const parts = line.slice(6).split(';').filter(Boolean);
+      for (const part of parts) {
+        const [xs, ys, hb, bo, sym] = part.split(',');
+        setCellIn(data.cells, Number(xs), Number(ys), {
+          hasBox: hb === '1',
+          blackedOut: bo === '1',
+          symbol: sym === '-' ? null : sym,
+        });
+      }
+    } else if (line.startsWith('SOLUTION=')) {
+      // Every generated puzzle has exactly one required move — parse the
+      // whole remainder as a single move rather than splitting on ',',
+      // since a grow's own placement list already uses top-level commas.
+      const solStr = line.slice(9).trim();
+      data.solutionMoves = solStr ? [parseTTGMove(solStr)] : [];
+    }
+  }
+  if (data.solutionMoves.length === 0) throw new Error('Puzzle file has no solution move.');
+  return data;
+}
+
+// ── Manifest — the site's only way to discover what's in /puzzles,
+// since static hosting can't list a directory ──
+let puzzleManifestCache = null;
+async function fetchPuzzleManifest() {
+  if (puzzleManifestCache) return puzzleManifestCache;
+  const res = await fetch('puzzles/manifest.json', {
+    cache: 'no-store'
+  });
+  if (!res.ok) throw new Error('Could not load the puzzle list.');
+  const data = await res.json();
+  puzzleManifestCache = data.puzzles || [];
+  return puzzleManifestCache;
+}
+
+function hashStringToInt(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function todayDateKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+async function pickDailyPuzzleEntry() {
+  const manifest = await fetchPuzzleManifest();
+  if (manifest.length === 0) throw new Error('No puzzles available yet.');
+  const idx = hashStringToInt('ttg-daily-' + todayDateKey()) % manifest.length;
+  return manifest[idx]; // same hash + same date = same puzzle for everyone
+}
+
+// ── Infinite mode — random, avoiding immediate repeats ──
+const PUZZLE_RECENT_KEY = 'ttg_recent_puzzle_files';
+const PUZZLE_RECENT_MAX = 15;
+
+function getRecentPuzzleFiles() {
+  try {
+    return JSON.parse(sessionStorage.getItem(PUZZLE_RECENT_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function markPuzzleShown(file) {
+  const recent = getRecentPuzzleFiles();
+  recent.push(file);
+  while (recent.length > PUZZLE_RECENT_MAX) recent.shift();
+  try {
+    sessionStorage.setItem(PUZZLE_RECENT_KEY, JSON.stringify(recent));
+  } catch (e) {}
+}
+
+async function pickRandomPuzzleEntry() {
+  const manifest = await fetchPuzzleManifest();
+  if (manifest.length === 0) throw new Error('No puzzles available yet.');
+  const recent = getRecentPuzzleFiles();
+  let pool = manifest.filter(p => !recent.includes(p.file));
+  if (pool.length === 0) pool = manifest; // recent window exhausted — recycle
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function startGameReview() {
   reviewMode = true;
   isOnline = false;
@@ -3221,6 +3538,7 @@ function handleClick(x,y) {
   if (annotateMode) return;
   if (reviewMode) return;
   if (over) return;
+  if (puzzleMode && puzzleSolved) return;
   if (isOnline&&!isMyTurn()) return;
   if      (phase==='tic')      doTic(x,y);
   else if (phase==='grow_ori') doGrowOri(x,y);
@@ -3231,6 +3549,7 @@ function handleClick(x,y) {
 function doTic(x,y) {
   const c=getC(x,y);
   if (!c.hasBox||c.blackedOut||c.symbol) { setStatus('Tic','Invalid — pick an empty, non-blacked-out box.'); return; }
+  if (puzzleMode) { submitPuzzleMove({action:'tic', x, y}); return; }
   if (isOnline) { sendOnlineMove({action:'tic',x,y}); return; }
   const sym=curP===1?'X':'O';
   setC(x,y,{symbol:sym});
@@ -3270,6 +3589,7 @@ function updateGrowUI() {
 function confirmGrow() {
   if (gSel.length===0) return;
   const ox=gOrigin.x, oy=gOrigin.y, placements=[...gSel];
+  if (puzzleMode) { gOrigin=null; gSel=[]; showCtrl('none'); submitPuzzleMove({action:'grow', ox, oy, placements}); return; }
   if (isOnline) { sendOnlineMove({action:'grow',ox,oy,placements}); gOrigin=null; gSel=[]; showCtrl('none'); return; }
   for (const p of placements) setC(p.x,p.y,{hasBox:true,blackedOut:false,symbol:null});
   log(historyMoveNotation({action:'grow', placements}));
@@ -3279,6 +3599,7 @@ function confirmGrow() {
 
 function doNo(x,y) {
   if (!canNo(x,y)) { setStatus('No','Cannot black out — adjacent to another blacked-out space.'); return; }
+  if (puzzleMode) { submitPuzzleMove({action:'no', x, y}); return; }
   const hadSym=getC(x,y).symbol||'';
   if (isOnline) { sendOnlineMove({action:'no',x,y}); return; }
   // Symbol is kept on record (not nulled) — checkWin/canGrow/canNo all key off
