@@ -1,0 +1,504 @@
+{
+  "puzzles": [
+    {
+      "file": "puzzle-fork-1.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-2.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-3.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-4.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-5.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-6.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-7.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-8.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-9.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-10.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-11.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-12.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-13.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-14.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-15.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-16.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-17.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-18.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-19.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-20.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-21.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-22.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-23.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-24.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-25.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-26.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-27.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-28.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-29.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-30.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-31.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-32.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-33.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-34.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-35.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-36.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-37.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-38.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-39.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-40.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-41.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-42.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-43.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-44.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-45.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-46.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-47.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-48.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-49.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-50.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-51.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-52.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-53.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-54.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-55.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-56.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-57.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-58.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-59.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-60.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-61.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-62.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-63.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-64.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-65.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-66.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-67.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-68.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-69.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-70.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-71.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-72.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-73.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-74.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-75.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-76.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-77.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-78.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-79.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-80.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-81.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-82.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-83.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-84.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-85.pz1",
+      "theme": "fork",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-fork-86.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-87.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-88.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-89.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-90.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-91.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-92.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-93.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-94.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-95.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-96.pz1",
+      "theme": "fork",
+      "difficulty": 5
+    },
+    {
+      "file": "puzzle-fork-97.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-98.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-99.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    },
+    {
+      "file": "puzzle-fork-100.pz1",
+      "theme": "fork",
+      "difficulty": 4
+    }
+  ]
+}
