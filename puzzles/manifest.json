@@ -1,6 +1,506 @@
 {
   "puzzles": [
     {
+      "file": "puzzle-preblock-1.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-2.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-3.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-4.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-5.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-6.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-7.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-8.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-9.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-10.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-11.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-12.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-13.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-14.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-15.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-16.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-17.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-18.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-19.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-20.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-21.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-22.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-23.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-24.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-25.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-26.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-27.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-28.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-29.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-30.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-31.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-32.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-33.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-34.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-35.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-36.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-37.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-38.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-39.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-40.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-41.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-42.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-43.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-44.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-45.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-46.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-47.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-48.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-49.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-50.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-51.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-52.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-53.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-54.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-55.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-56.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-57.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-58.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-59.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-60.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-62.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-64.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-65.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-66.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-67.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-68.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-69.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-70.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-71.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-72.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-73.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-74.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-75.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-76.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-77.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-78.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-79.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-80.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-81.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-82.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-83.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-84.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-85.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-86.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-87.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-88.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-89.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-90.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-91.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-92.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-93.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-95.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-96.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-97.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-98.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-99.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
+      "file": "puzzle-preblock-100.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-101.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-102.pz1",
+      "theme": "preblock",
+      "difficulty": 2
+    },
+    {
+      "file": "puzzle-preblock-103.pz1",
+      "theme": "preblock",
+      "difficulty": 3
+    },
+    {
       "file": "puzzle-fork-1.pz1",
       "theme": "fork",
       "difficulty": 3
