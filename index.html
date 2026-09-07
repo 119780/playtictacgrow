@@ -3031,7 +3031,7 @@ function showLobbyAtPuzzles() {
 }
 
 function puzzleSolvedMessage(theme) {
-  if (theme === 'fork') return 'That grow creates an unstoppable double threat.';
+  if (theme === 'fork') return 'Checkmate.';
   return 'Forces the win.';
 }
 
@@ -3075,7 +3075,7 @@ function submitPuzzleMove(move) {
     ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled = true);
     updatePuzzleActionButton();
   } else {
-    logNet("Not quite — that doesn't force the win. Try again.");
+    logNet("Not quite.");
     phase = 'idle'; gOrigin = null; gSel = [];
     ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).classList.remove('sel'));
     showCtrl('none');
