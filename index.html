@@ -712,6 +712,22 @@ display:grid;
   line-height:1.4;
 }
 
+.cell.last-move-x::after{
+  border:3px dashed var(--x);
+  box-shadow:0 0 0 2px rgba(200,56,56,.2) inset;
+  animation: lastMoveFlash .5s ease-out;
+}
+.cell.last-move-o::after{
+  border:3px dashed var(--o);
+  box-shadow:0 0 0 2px rgba(32,144,176,.2) inset;
+  animation: lastMoveFlash .5s ease-out;
+}
+@keyframes lastMoveFlash{
+  0%{ transform:scale(1); }
+  35%{ transform:scale(1.08); }
+  100%{ transform:scale(1); }
+}
+
 .puzzle-action-btn{
   width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border2);
   background:rgba(255,255,255,.04);color:var(--text);font-size:.77rem;font-weight:700;
@@ -2901,6 +2917,15 @@ let puzzleMode = false;
 let puzzleFlow = null; // 'daily' | 'infinite'
 let currentPuzzle = null; // parsed PZ1 object
 let puzzleSolved = false;
+let puzzleLastMoveCells  = []; // [{x,y}, ...] to ring-highlight
+let puzzleLastMoveSymbol = 'X';
+
+function getLastMoveHighlightCells(move) {
+  if (!move) return [];
+  if (move.action === 'tic' || move.action === 'no') return [{ x: move.x, y: move.y }];
+  if (move.action === 'grow') return move.placements.map(p => ({ x: p.x, y: p.y }));
+  return [];
+}
 
 async function startDailyPuzzle() {
   try {
@@ -2971,7 +2996,14 @@ function startPuzzleMode() {
 
   document.getElementById('p1name').textContent = 'Player 1';
   document.getElementById('p2name').textContent = 'Player 2';
-  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle: ${puzzleStartMessage(currentPuzzle.theme)}</div>`;
+  puzzleLastMoveCells = getLastMoveHighlightCells(currentPuzzle.lastMove);
+  puzzleLastMoveSymbol = currentPuzzle.lastMoveBy || (currentPuzzle.turn === 'X' ? 'O' : 'X');
+
+  let logHtml = `<div class="lentry">Puzzle — ${puzzleStartMessage(currentPuzzle.theme)}</div>`;
+  if (currentPuzzle.lastMove) {
+    logHtml += `<div class="lentry lnet">— Opponent's last move: ${historyMoveNotation(currentPuzzle.lastMove)}</div>`;
+  }
+  document.getElementById('log').innerHTML = logHtml;
 
   document.getElementById('puzzle-exit-btn').style.display = 'block';
   updatePuzzleActionButton();
@@ -3015,6 +3047,7 @@ function updatePuzzleActionButton() {
 
 function exitPuzzleToPuzzlesPage() {
   puzzleMode = false; currentPuzzle = null; puzzleSolved = false; puzzleFlow = null;
+  puzzleLastMoveCells = [];
   document.getElementById('puzzle-action-btn').style.display = 'none';
   document.getElementById('puzzle-exit-btn').style.display = 'none';
   document.getElementById('action-controls').style.display = 'contents';
@@ -3126,7 +3159,9 @@ function parsePZ1(text) {
     turn: 'X',
     difficulty: 1,
     cells: {},
-    solutionMoves: []
+    solutionMoves: [],
+    lastMove: null,
+    lastMoveBy: null
   };
 
   for (const line of lines) {
@@ -3144,11 +3179,13 @@ function parsePZ1(text) {
         });
       }
     } else if (line.startsWith('SOLUTION=')) {
-      // Every generated puzzle has exactly one required move — parse the
-      // whole remainder as a single move rather than splitting on ',',
-      // since a grow's own placement list already uses top-level commas.
       const solStr = line.slice(9).trim();
       data.solutionMoves = solStr ? [parseTTGMove(solStr)] : [];
+    } else if (line.startsWith('LASTMOVE=')) {
+      const s = line.slice(9).trim();
+      data.lastMove = s ? parseTTGMove(s) : null;
+    } else if (line.startsWith('LASTMOVEBY=')) {
+      data.lastMoveBy = line.slice(11) === 'O' ? 'O' : 'X';
     }
   }
   if (data.solutionMoves.length === 0) throw new Error('Puzzle file has no solution move.');
@@ -3474,6 +3511,9 @@ function buildCell(x,y,sz) {
   div.style.cssText=`width:${sz}px;height:${sz}px`;
   div.dataset.x=x; div.dataset.y=y;
   const even=(x+y)%2===0;
+  if (puzzleMode && puzzleLastMoveCells.some(c => c.x === x && c.y === y)) {
+    div.classList.add(puzzleLastMoveSymbol === 'O' ? 'last-move-o' : 'last-move-x');
+  }
   if (c.hasBox) { div.classList.add('has-box'); div.style.background=even?'var(--box-a)':'var(--box-b)'; }
   else          { div.classList.add('no-box');  div.style.background=even?'var(--grid-a)':'var(--grid-b)'; }
   if (c.blackedOut) {
