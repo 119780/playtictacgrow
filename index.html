@@ -999,12 +999,12 @@ display:grid;
     <!-- Puzzles -->
 	<div class="lscreen" id="ls-puzzles">
   	  <div class="dash-h2">Puzzles</div>
-  	  <button class="lbig" onclick="startDailyPuzzle()" disabled>
-  		<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(145,99,212,.14);color:var(--learn)"></div>
+  	  <button class="lbig" onclick="startDailyPuzzle()">
+  		<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(145,99,212,.14);color:var(--learn)">★</div>
   		<div><div class="lbig-title">Daily Puzzle</div><div class="lbig-desc">A new puzzle every day</div></div>
 		</button>
 	  <button class="lbig" onclick="startInfinitePuzzle()">
-  		<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(76,127,224,.14);color:var(--puzzles)"></div>
+  		<div class="aicon" style="width:40px;height:40px;border-radius:10px;font-size:1.1rem;background:rgba(76,127,224,.14);color:var(--puzzles)">∞</div>
   		<div><div class="lbig-title">Infinite Puzzles</div><div class="lbig-desc">Endless puzzles, one after another</div></div>
 	  </button>
       <button class="lbtn-sec" style="width:100%;margin-top:4px" onclick="showChooseScreen()">Back</button>
@@ -1162,6 +1162,8 @@ display:grid;
         </div>
         <!-- Online resign win (no rematch) -->
         <div class="win-btns" id="win-resign" style="display:none">
+          <div class="opp-ready" id="opp-ready-msg"></div>
+          <button class="wagain" id="btn-rematch" onclick="requestRematch()">Play Again</button>
           <button class="wgohome" onclick="goHome()">Go to Dashboard</button>
         </div>
         <!-- Local mode -->
@@ -2969,7 +2971,7 @@ function startPuzzleMode() {
 
   document.getElementById('p1name').textContent = 'Player 1';
   document.getElementById('p2name').textContent = 'Player 2';
-  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle — force a win.</div>`;
+  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle — ${puzzleStartMessage(currentPuzzle.theme)}</div>`;
 
   document.getElementById('puzzle-exit-btn').style.display = 'block';
   updatePuzzleActionButton();
@@ -3031,8 +3033,16 @@ function showLobbyAtPuzzles() {
 }
 
 function puzzleSolvedMessage(theme) {
-  if (theme === 'fork') return 'Checkmate.';
-  return 'Forces the win.';
+  if (theme === 'fork')      return 'That grow creates an unstoppable double threat.';
+  if (theme === 'preblock')  return "That no takes away every one of the opponent's fork options.";
+  if (theme === 'blockfork') return 'That survives both threats at once.';
+  return 'Solved.';
+}
+
+function puzzleStartMessage(theme) {
+  if (theme === 'preblock')  return "stop the opponent's fork before it happens.";
+  if (theme === 'blockfork') return 'block the double threat.';
+  return 'force a win.'; // fork
 }
 
 // Origin is deliberately ignored for grow comparison — the resulting
@@ -3075,7 +3085,7 @@ function submitPuzzleMove(move) {
     ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).disabled = true);
     updatePuzzleActionButton();
   } else {
-    logNet("Not quite.");
+    logNet("Not quite. Try again.");
     phase = 'idle'; gOrigin = null; gSel = [];
     ['tic','grow','no'].forEach(id => document.getElementById('btn-'+id).classList.remove('sel'));
     showCtrl('none');
