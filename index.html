@@ -3041,7 +3041,7 @@ function puzzleSolvedMessage(theme) {
 
 function puzzleStartMessage(theme) {
   if (theme === 'preblock')  return "stop the opponent's fork before it happens.";
-  if (theme === 'blockfork') return 'block the fork.';
+  if (theme === 'blockfork') return "the opponent has created a fork. Don't allow them to win.";
   return 'force a win.'; // fork
 }
 
