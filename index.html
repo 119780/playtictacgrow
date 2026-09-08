@@ -2971,7 +2971,7 @@ function startPuzzleMode() {
 
   document.getElementById('p1name').textContent = 'Player 1';
   document.getElementById('p2name').textContent = 'Player 2';
-  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle — ${puzzleStartMessage(currentPuzzle.theme)}</div>`;
+  document.getElementById('log').innerHTML = `<div class="lentry">Puzzle: ${puzzleStartMessage(currentPuzzle.theme)}</div>`;
 
   document.getElementById('puzzle-exit-btn').style.display = 'block';
   updatePuzzleActionButton();
@@ -3033,15 +3033,15 @@ function showLobbyAtPuzzles() {
 }
 
 function puzzleSolvedMessage(theme) {
-  if (theme === 'fork')      return 'That grow creates an unstoppable double threat.';
-  if (theme === 'preblock')  return "That no takes away every one of the opponent's fork options.";
-  if (theme === 'blockfork') return 'That survives both threats at once.';
+  if (theme === 'fork')      return 'Checkmate.';
+  if (theme === 'preblock')  return "Takes away the opponent's fork option.";
+  if (theme === 'blockfork') return 'Blocks both threats.';
   return 'Solved.';
 }
 
 function puzzleStartMessage(theme) {
   if (theme === 'preblock')  return "stop the opponent's fork before it happens.";
-  if (theme === 'blockfork') return 'block the double threat.';
+  if (theme === 'blockfork') return 'block the fork.';
   return 'force a win.'; // fork
 }
 
